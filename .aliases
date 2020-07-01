@@ -1,0 +1,36 @@
+alias pypen='open -a "/Applications/PyCharm CE.app"'
+alias vspen='open -a "/Applications/Visual Studio Code.app"'
+alias tql='textql -header -sql'
+
+#bash profile shortcuts
+alias crc='cat ~/.zshrc'
+alias orc='nvim ~/.zshrc'
+alias src='. ~/.zshrc'
+
+#git
+alias branch="git status | head -n 1 | cut -d' ' -f3"
+
+
+#copy/paste
+alias y='pbcopy'
+alias p='pbpaste'
+
+#nvim
+alias vconf='nvim ~/.config/nvim/init.vim'
+#end
+
+alias l='exa'
+alias ls='exa'
+alias la='exa -a'
+alias ll='exa -l' 
+
+
+#misc
+alias  firefox='noglob /Applications/Firefox.app/Contents/MacOS/firefox'
+
+alias distro='cat /etc/*-release'
+alias  L='| bat'
+
+
+
+
