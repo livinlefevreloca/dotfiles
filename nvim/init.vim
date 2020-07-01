@@ -9,9 +9,8 @@ call plug#begin('~/.config/nvim/plugged')
 " visual
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
-Plug 'fcpg/vim-orbital'
-
-" misc 
+Plug 'git@gitlab.com:yorickpeterse/happy_hacking.vim.git'
+"misc 
 Plug 'preservim/nerdtree'
 Plug 'jiangmiao/auto-pairs'
 
@@ -30,6 +29,7 @@ call plug#end()
 " ale options set linters
 let b:ale_fixers = {'javascript': ['eslint'], 'python': ['black']}
 let g:ale_completion_tsserver_autoimport = 1
+
 
 " terminal
 :tnoremap <Esc> <C-\><C-n>
@@ -53,8 +53,4 @@ nnoremap <leader>t :terminal<CR>i
 nnoremap <leader>g :ALEGoToDefinition<CR>
 nnoremap <leader>f :ALEFindReferences<CR>
 
-
-colorscheme orbital
-set t_Co=256
-set t_AB=^[[48;5;%dm
-set t_AF=^[[38;5;%dm
+color happy_hacking
