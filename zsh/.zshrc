@@ -7,8 +7,7 @@ export ZSH="/Users/adam.lefevre/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="xiong-chiamiov-plus"
-
+ZSH_THEME="darkblood"
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in $ZSH/themes/
@@ -16,7 +15,7 @@ ZSH_THEME="xiong-chiamiov-plus"
 # ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
-# CASE_SENSITIVE="true"
+ CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
@@ -68,12 +67,15 @@ ZSH_THEME="xiong-chiamiov-plus"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(git
-	 zsh-autosuggestions
-	 zsh-syntax-highlighting
 	)
 
-source $ZSH/oh-my-zsh.sh
+###_begin_ttt_install_block_###
+export PATH=/Users/adam.lefevre/.ttt_home:$PATH
+###_end_ttt_install_block_###
 
+
+source $ZSH/oh-my-zsh.sh
+export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -g ""'
 unsetopt nomatch
 # User configuration
 
@@ -122,12 +124,9 @@ unset __conda_setup
 
 push() { git push ${1:-} origin $(branch); }
 pull() { git pull origin $(branch); }
-fbranch() {
-        items=$(git branch | grep "$1")
-}
 
 checkout () {
-        git checkout "$1"
+        git checkout `git branch | fzf`
         pull
 }
 
@@ -142,6 +141,18 @@ pick-to-branch () {
         git cherry-pick "$hash"
         rm temp
 }
+
+
+fast_push () {
+    git commit -am "$@"
+    push
+}
+
+select-branch () {
+
+    git branch | fzf
+
+}
 #end
 
 
@@ -151,8 +162,6 @@ pick-to-branch () {
 #rust
 export PATH="$HOME/.cargo/bin:$PATH"
 export PATH="/usr/local/opt/libpq/bin:$PATH"
-
-. ~/.zshtools/z/z.sh
 
 if [ -f ~/.aliases ]; then
     . ~/.aliases
@@ -164,5 +173,53 @@ google () {
 	firefox --new-window 'https://google.com/search?q='"$*"
 }
 
-
+# fzf functions
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+fzview () {
+    local flag=
+    if [[ $1 == '-s' ]]
+    then
+        local flag='-p'
+    fi    
+    bat $flag $(fd -H . ~ | fzf)
+}
+
+
+fzedit () {
+    local root=~
+    if [[ $1 == '-r' ]]
+    then
+        local root=/
+    fi    
+    nvim $(fd -H . "$root" | fzf)
+}
+
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+#pyspark                                
+export JAVA_HOME=/Library/java/JavaVirtualMachines/adoptopenjdk-8.jdk/contents/Home/                                
+export JRE_HOME=/Library/java/JavaVirtualMachines/openjdk-13.jdk/contents/Home/jre/                                
+export SPARK_HOME=/usr/local/Cellar/apache-spark/2.4.5/libexec                                
+export PATH=/usr/local/Cellar/apache-spark/2.4.5/bin:$PATH                                
+export PYSPARK_PYTHON=/usr/local/bin/python3                                
+export PYSPARK_DRIVER_PYTHON=jupyter                                
+export PYSPARK_DRIVER_PYTHON_OPTS='notebook'                                
+                                
+#venvs                                
+export VENV_PATH="/Users/adam.lefevre/projects/venvs"                                
+activate () {                                
+    source "$VENV_PATH/$1/bin/activate"                                
+    }                                
+make_venv () {                                
+        cd $VENV_PATH                                
+        virtualenv $1                                
+        cd -                                
+}                         
+
+
+# alter conda prompt
+y=$(echo $PS1 | sed "s/${CONDA_PROMPT_MODIFIER}//")
+export PS1=$(echo $y | sed "s/└/└${CONDA_PROMPT_MODIFIER}/")
+
