@@ -1,5 +1,6 @@
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
+
 # Path to your oh-my-zsh installation.
 export ZSH="/Users/adam.lefevre/.oh-my-zsh"
 
@@ -7,7 +8,8 @@ export ZSH="/Users/adam.lefevre/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="darkblood"
+ZSH_THEME="adam"
+
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in $ZSH/themes/
@@ -15,7 +17,7 @@ ZSH_THEME="darkblood"
 # ZSH_THEME_RANDOM_CANDIDATES=( "robbyrussell" "agnoster" )
 
 # Uncomment the following line to use case-sensitive completion.
- CASE_SENSITIVE="true"
+# CASE_SENSITIVE="true"
 
 # Uncomment the following line to use hyphen-insensitive completion.
 # Case-sensitive completion must be off. _ and - will be interchangeable.
@@ -31,7 +33,7 @@ ZSH_THEME="darkblood"
 # export UPDATE_ZSH_DAYS=13
 
 # Uncomment the following line if pasting URLs and other text is messed up.
-# DISABLE_MAGIC_FUNCTIONS=true
+# DISABLE_MAGIC_FUNCTIONS="true"
 
 # Uncomment the following line to disable colors in ls.
 # DISABLE_LS_COLORS="true"
@@ -66,17 +68,10 @@ ZSH_THEME="darkblood"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git
-	)
-
-###_begin_ttt_install_block_###
-export PATH=/Users/adam.lefevre/.ttt_home:$PATH
-###_end_ttt_install_block_###
-
+plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
-export FZF_DEFAULT_COMMAND='ag --hidden --ignore .git -g ""'
-unsetopt nomatch
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -103,11 +98,9 @@ unsetopt nomatch
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-
-
 # >>> conda initialize >>>
 # !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/Users/adam.lefevre/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+__conda_setup="$('/Users/adam.lefevre/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
 if [ $? -eq 0 ]; then
     eval "$__conda_setup"
 else
@@ -119,7 +112,6 @@ else
 fi
 unset __conda_setup
 # <<< conda initialize <<<
-
 #git
 
 push() { git push ${1:-} origin $(branch); }
@@ -155,6 +147,24 @@ select-branch () {
 }
 #end
 
+#notes
+
+notes () {
+    
+    cd ~/notes 
+    nvim -p "$@"
+
+}
+
+
+#aws 
+export AWS_PROFILE=tempusdevops-adam-lefevre
+
+change_profile () {
+
+    export AWS_PROFILE=${1}
+}
+#end aws
 
 
 #end
@@ -218,8 +228,28 @@ make_venv () {
         cd -                                
 }                         
 
+###_begin_ttt_install_block_###
+if [[ ${PATH} != '*ttt*' ]]; then
+    export PATH=/Users/adam.lefevre/.ttt_home:$PATH
+fi
 
-# alter conda prompt
-y=$(echo $PS1 | sed "s/${CONDA_PROMPT_MODIFIER}//")
-export PS1=$(echo $y | sed "s/└/└${CONDA_PROMPT_MODIFIER}/")
+online () {
+    local ret;
+    aws s3 ls &> /dev/null;
+    ret=$?
+    if [[ $ret != 0 ]]; then
+        ttt aws-refresh write 
+        eval $(ttt aws-refresh load tempusdevops-adam-lefevre) 
+        ssh-add 
+        cat ~/.aws/credentials | head -n $(( $(cat ~/.aws/credentials | wc -l | xargs) - 5))> ~/.aws/credentials 
+        cat ~/.aws/credentials ~/.aws/staging_user.txt ~/.aws/cp.aws > temp && mv temp ~/.aws/credentials
+    fi
+}
+###_end_ttt_install_block_###
 
+if [[ ${PATH} != '*~/bin:*' ]]; then
+    export PATH=~/bin:$PATH
+fi
+online
+fix
+# eval "$(starship init zsh)"

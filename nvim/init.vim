@@ -3,7 +3,7 @@
 " General setting for ideak nvim usage
 "==================================================================================================================================================
 set number 
-set relativenumber
+set norelativenumber
 set nobackup
 set nowritebackup
 set nowrap
@@ -13,6 +13,10 @@ set tabstop=4
 set shiftwidth=4
 set expandtab
 set cursorline
+set termguicolors
+
+" auto commands
+autocmd Filetype yaml set tabstop=2 | set shiftwidth=2
 " Instantiate Plugins
 "==================================================================================================================================================
 " Plugins installed for use with nvim
@@ -25,6 +29,9 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'neoclide/coc-python'
 Plug 'rakr/vim-two-firewatch'
 Plug 'itchyny/lightline.vim'
+Plug 'taohexxx/lightline-solarized'
+Plug 'danilo-augusto/vim-afterglow'
+Plug 'hashivim/vim-terraform'
 call plug#end()
 
 "General mappings
@@ -45,28 +52,34 @@ vnoremap > >gv
 " normal mappings
 nnoremap <c-s> :source ~/.config/nvim/init.vim<CR>
 nnoremap <silent> <c-c> :tabedit ~/.config/nvim/init.vim<CR>
+nnoremap <C-k> O<ESC>j 
+nnoremap <C-j> o<ESC>k
+nnoremap <C-t> :tab terminal<CR>i
+
+" terminal mappings
+:tnoremap <Esc> <C-\><C-n>
 
 
-" Ctrl-j/k deletes blank line below/above, and Alt-j/k inserts.
-nnoremap <C-k> O<ESC> 
-nnoremap <C-j> o<ESC>
 
 " ex mappings
 xnoremap ii  <ESC> 
 
 " visual mappings
 vnoremap ii <ESC> 
-
+vnoremap <leader>y :w !pbcopy<CR><CR>
 " leader short cuts
 nnoremap <leader>w :w<CR>
 nnoremap <leader>q :q<CR>
 nnoremap <leader>qq :q!<CR>
 nnoremap <leader>wq :wq<CR>
 nnoremap <leader><leader> <c-w>w
+nmap <leader> <c-w>
 nnoremap <leader>n :tabn<CR>
 nnoremap <leader>p :tabp<CR>
 nnoremap <leader>t :tabnew<CR>
 nnoremap <leader>c :tabc<CR>
+nnoremap <silent> <leader>b :set relativenumber!<CR>
+nnoremap <silent> <leader>B :set nu!<CR>
 " Plugin specifics
 "==================================================================================================================================================
 " Settings for plugins used with neovim
@@ -80,16 +93,18 @@ nnoremap <leader>c :tabc<CR>
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " open Nerdtree on startup
 autocmd vimenter * NERDTree | wincmd p
-
+autocmd StdinReadPre * let s:std_in=1
+autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 " close vim if nerd tree is the only window left
 autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
 
 "map toggle
 map <C-n> :NERDTreeToggle<CR>
-nmap <C-r> :NERDTreeFocus<cr>R<c-w><c-p>
+nmap <C-R> :NERDTreeFocus<cr>R<c-w><c-p>
+nnoremap <leader>v :call NERDTreeLivePreview()<CR>
+nnoremap <leader>V <C-w>j :q!<CR>
 " prevent crashes due to vim-plug
 let g:plug_window = 'noautocmd vertical topleft new'
-
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Nerdtree End
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -100,10 +115,9 @@ let g:plug_window = 'noautocmd vertical topleft new'
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc-vim 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 nmap <leader>d :w<CR><Plug>(coc-definition)
 nmap <leader>y :w<CR><Plug>(coc-type-definition)
-nmap <leader>i :<CR><Plug>(coc-implementation)
+nmap <leader>i :w<CR><Plug>(coc-implementation)
 nmap <leader>r <Plug>(coc-references)
 
 let g:coc_user_config = {"python.pythonPath":"/Users/adam.lefevre/anaconda3/bin/python3", "python.jediEnabled": "false"}
@@ -112,8 +126,14 @@ let g:coc_user_config = {"python.pythonPath":"/Users/adam.lefevre/anaconda3/bin/
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" terraform 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+let g:terraform_fmt_on_save=1
 
-
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" terraform end
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " fzf 
@@ -144,12 +164,11 @@ endfunction
 command! -register CopyMatches call CopyMatches(<q-reg>)
 
  
-
 "Colors
 syntax on
 set background=dark " or light if you prefer the light version
-let g:two_firewatch_italics=1
-colo two-firewatch
-let g:lightline = { 'colorscheme': 'seoul256' }
+colorscheme afterglow
+let g:lightline = { 'colorscheme': 'jellybeans' }
+hi TabLineSel ctermfg=Red ctermbg=white
 
-hi Pmenu          guifg=#f6f3e8     guibg=#444444     gui=NONE      ctermfg=NONE        ctermbg=NONE        cterm=NONE
+
