@@ -2,19 +2,21 @@
 "==================================================================================================================================================
 " General setting for ideak nvim usage
 "==================================================================================================================================================
-set number 
+set number
 set norelativenumber
 set nobackup
 set nowritebackup
 set nowrap
 set laststatus=2
-set completeopt-=preview
+set completeopt=preview
 set tabstop=4
 set shiftwidth=4
 set expandtab
 set cursorline
 set termguicolors
-
+set list
+set listchars=eol:↩
+set ffs=unix
 " auto commands
 autocmd Filetype yaml set tabstop=2 | set shiftwidth=2
 " Instantiate Plugins
@@ -29,8 +31,8 @@ Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'neoclide/coc-python'
 Plug 'rakr/vim-two-firewatch'
 Plug 'itchyny/lightline.vim'
+Plug 'overcache/NeoSolarized'
 Plug 'taohexxx/lightline-solarized'
-Plug 'danilo-augusto/vim-afterglow'
 Plug 'hashivim/vim-terraform'
 call plug#end()
 
@@ -74,6 +76,8 @@ nnoremap <leader>qq :q!<CR>
 nnoremap <leader>wq :wq<CR>
 nnoremap <leader><leader> <c-w>w
 nmap <leader> <c-w>
+nnoremap <C-d> jjjjj
+nnoremap <C-u> kkkkk
 nnoremap <leader>n :tabn<CR>
 nnoremap <leader>p :tabp<CR>
 nnoremap <leader>t :tabnew<CR>
@@ -100,7 +104,6 @@ autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isT
 
 "map toggle
 map <C-n> :NERDTreeToggle<CR>
-nmap <C-R> :NERDTreeFocus<cr>R<c-w><c-p>
 nnoremap <leader>v :call NERDTreeLivePreview()<CR>
 nnoremap <leader>V <C-w>j :q!<CR>
 " prevent crashes due to vim-plug
@@ -167,8 +170,8 @@ command! -register CopyMatches call CopyMatches(<q-reg>)
 "Colors
 syntax on
 set background=dark " or light if you prefer the light version
-colorscheme afterglow
-let g:lightline = { 'colorscheme': 'jellybeans' }
+colorscheme NeoSolarized
+let g:lightline = { 'colorscheme': 'lightline_solarized' }
 hi TabLineSel ctermfg=Red ctermbg=white
 
 

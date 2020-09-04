@@ -8,7 +8,7 @@ export ZSH="/Users/adam.lefevre/.oh-my-zsh"
 # load a random theme each time oh-my-zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="adam"
+ZSH_THEME="xiong-chiamiov-plus"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -253,3 +253,8 @@ fi
 online
 fix
 # eval "$(starship init zsh)"
+
+if [[ -n $TMUX ]]; then
+    export RPROMPT=''
+fi
+#
