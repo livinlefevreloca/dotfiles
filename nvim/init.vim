@@ -2,6 +2,7 @@
 "==================================================================================================================================================
 " General setting for ideak nvim usage
 "==================================================================================================================================================
+
 set number
 set norelativenumber
 set nobackup
@@ -29,7 +30,8 @@ Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'neoclide/coc-python'
-Plug 'rakr/vim-two-firewatch'
+Plug 'terryma/vim-multiple-cursors'
+Plug 'easymotion/vim-easymotion'
 Plug 'itchyny/lightline.vim'
 Plug 'overcache/NeoSolarized'
 Plug 'taohexxx/lightline-solarized'
@@ -70,12 +72,11 @@ xnoremap ii  <ESC>
 vnoremap ii <ESC> 
 vnoremap <leader>y :w !pbcopy<CR><CR>
 " leader short cuts
-nnoremap <leader>w :w<CR>
-nnoremap <leader>q :q<CR>
+nnoremap <leader>w :wa<CR>
+nnoremap <leader>q :x<CR>
+nnoremap <leader>qa :xa<CR>
 nnoremap <leader>qq :q!<CR>
-nnoremap <leader>wq :wq<CR>
 nnoremap <leader><leader> <c-w>w
-nmap <leader> <c-w>
 nnoremap <C-d> jjjjj
 nnoremap <C-u> kkkkk
 nnoremap <leader>n :tabn<CR>
@@ -84,6 +85,9 @@ nnoremap <leader>t :tabnew<CR>
 nnoremap <leader>c :tabc<CR>
 nnoremap <silent> <leader>b :set relativenumber!<CR>
 nnoremap <silent> <leader>B :set nu!<CR>
+nnoremap <silent> <leader>l :set listchars=<CR>
+nnoremap <silent> <leader>L :set listchars=eol:↩<CR>
+
 " Plugin specifics
 "==================================================================================================================================================
 " Settings for plugins used with neovim
@@ -100,10 +104,11 @@ autocmd vimenter * NERDTree | wincmd p
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 " close vim if nerd tree is the only window left
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERiDTree") && b:NERDTree.isTabTree()) | q | endif
+let g:NERDTreeWinSize=25
 
 "map toggle
-map <C-n> :NERDTreeToggle<CR>
+map <C-x> :NERDTreeToggle<CR>
 nnoremap <leader>v :call NERDTreeLivePreview()<CR>
 nnoremap <leader>V <C-w>j :q!<CR>
 " prevent crashes due to vim-plug
@@ -151,27 +156,41 @@ nnoremap <leader>s :Rg<CR>
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" multiple cursors 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+let g:multi_cursor_use_default_mapping=0
+
+" Default mapping
+let g:multi_cursor_start_word_key      = '<C-n>'
+let g:multi_cursor_select_all_word_key = '<C-a>'
+let g:multi_cursor_start_key           = 'g<C-n>'
+let g:multi_cursor_select_all_key      = 'g<C-a>'
+let g:multi_cursor_next_key            = '<C-n>'
+let g:multi_cursor_prev_key            = '<C-p>'
+let g:multi_cursor_skip_key            = '<C-x>'
+let g:multi_cursor_quit_key            = '<Esc>'
+
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+"end multiple cursors
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
-"Scripts
-"==================================================================================================================================================
-" Scipts to help productivity
-"==================================================================================================================================================
-" copy all matches into a buffer
-function! CopyMatches(reg)
-  let hits = []
-  %s//\=len(add(hits, submatch(0))) ? submatch(0) : ''/gne
-  let reg = empty(a:reg) ? '+' : a:reg
-  execute 'let @'.reg.' = join(hits, "\n") . "\n"'
-endfunction
-command! -register CopyMatches call CopyMatches(<q-reg>)
-
- 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+"easymotion
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+map xx <Plug>(easymotion-prefix)
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+"end easymotion
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+"
+"
 "Colors
 syntax on
 set background=dark " or light if you prefer the light version
 colorscheme NeoSolarized
 let g:lightline = { 'colorscheme': 'lightline_solarized' }
 hi TabLineSel ctermfg=Red ctermbg=white
+"hi! EndOfBuffer ctermbg=bg ctermfg=bg guibg=bg guifg=bg
 
 
