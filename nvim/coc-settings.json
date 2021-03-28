@@ -1,0 +1,7 @@
+{
+ "python.venvPath": "~/.pyenv",
+ "python.pythonPath": "~/bin/adams-python",
+ "python.linting.lintOnSave": true,
+ "python.jediEnabled": true, 
+ "python.linting.pylintEnabled": true
+}

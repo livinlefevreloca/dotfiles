@@ -15,11 +15,13 @@ set shiftwidth=4
 set expandtab
 set cursorline
 set termguicolors
-set list
-set listchars=eol:↩
+"set mouse=a
 set ffs=unix
 " auto commands
 autocmd Filetype yaml set tabstop=2 | set shiftwidth=2
+autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
+autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
+autocmd FileType python let b:coc_root_patterns = ['.git']
 " Instantiate Plugins
 "==================================================================================================================================================
 " Plugins installed for use with nvim
@@ -28,14 +30,22 @@ call plug#begin('~/.config/nvim/plugged')
 Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
+Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'machakann/vim-highlightedyank'
 Plug 'neoclide/coc-python'
-Plug 'terryma/vim-multiple-cursors'
 Plug 'easymotion/vim-easymotion'
 Plug 'itchyny/lightline.vim'
 Plug 'overcache/NeoSolarized'
 Plug 'taohexxx/lightline-solarized'
 Plug 'hashivim/vim-terraform'
+Plug 'ziglang/zig.vim'
+Plug 'pangloss/vim-javascript'
+Plug 'leafgarland/typescript-vim'
+Plug 'peitalin/vim-jsx-typescript'
+Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
+Plug 'tpope/vim-fugitive'
+Plug 'tpope/vim-rhubarb'
 call plug#end()
 
 "General mappings
@@ -59,9 +69,7 @@ nnoremap <silent> <c-c> :tabedit ~/.config/nvim/init.vim<CR>
 nnoremap <C-k> O<ESC>j 
 nnoremap <C-j> o<ESC>k
 nnoremap <C-t> :tab terminal<CR>i
-
-" terminal mappings
-:tnoremap <Esc> <C-\><C-n>
+tnoremap <Esc> <C-\><C-n>
 
 
 
@@ -70,23 +78,19 @@ xnoremap ii  <ESC>
 
 " visual mappings
 vnoremap ii <ESC> 
-vnoremap <leader>y :w !pbcopy<CR><CR>
 " leader short cuts
-nnoremap <leader>w :wa<CR>
-nnoremap <leader>q :x<CR>
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
 nnoremap <leader>qa :xa<CR>
 nnoremap <leader>qq :q!<CR>
 nnoremap <leader><leader> <c-w>w
-nnoremap <C-d> jjjjj
-nnoremap <C-u> kkkkk
+nnoremap <leader> <c-w>
 nnoremap <leader>n :tabn<CR>
 nnoremap <leader>p :tabp<CR>
 nnoremap <leader>t :tabnew<CR>
 nnoremap <leader>c :tabc<CR>
+nnoremap <C-q> :w<CR>:bdelete<CR>
 nnoremap <silent> <leader>b :set relativenumber!<CR>
-nnoremap <silent> <leader>B :set nu!<CR>
-nnoremap <silent> <leader>l :set listchars=<CR>
-nnoremap <silent> <leader>L :set listchars=eol:↩<CR>
 
 " Plugin specifics
 "==================================================================================================================================================
@@ -100,17 +104,15 @@ nnoremap <silent> <leader>L :set listchars=eol:↩<CR>
 " Nerdtree 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " open Nerdtree on startup
-autocmd vimenter * NERDTree | wincmd p
+"autocmd vimenter * NERDTree | wincmd p
 autocmd StdinReadPre * let s:std_in=1
 autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
 " close vim if nerd tree is the only window left
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERiDTree") && b:NERDTree.isTabTree()) | q | endif
-let g:NERDTreeWinSize=25
-
+autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+let g:NERDTreeWinSize=40
+let g:NERDTreeWinPos = "right"
 "map toggle
-map <C-x> :NERDTreeToggle<CR>
-nnoremap <leader>v :call NERDTreeLivePreview()<CR>
-nnoremap <leader>V <C-w>j :q!<CR>
+map <C-n> :NERDTreeToggle<CR>
 " prevent crashes due to vim-plug
 let g:plug_window = 'noautocmd vertical topleft new'
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -123,12 +125,12 @@ let g:plug_window = 'noautocmd vertical topleft new'
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc-vim 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-nmap <leader>d :w<CR><Plug>(coc-definition)
-nmap <leader>y :w<CR><Plug>(coc-type-definition)
-nmap <leader>i :w<CR><Plug>(coc-implementation)
+nmap <leader>d <Plug>(coc-definition)
+nmap <leader>y <Plug>(coc-type-definition)
+nmap <leader>i <Plug>(coc-implementation)
 nmap <leader>r <Plug>(coc-references)
+let g:coc_global_extensions = ['coc-python', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier']
 
-let g:coc_user_config = {"python.pythonPath":"/Users/adam.lefevre/anaconda3/bin/python3", "python.jediEnabled": "false"}
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc-vim end
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -147,43 +149,22 @@ let g:terraform_fmt_on_save=1
 " fzf 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-nnoremap <leader>ff :Files<CR>
-nnoremap <leader>f :Files
+nnoremap <leader>f :Files<CR>
+nnoremap <leader>ff :Files
 nnoremap <leader>s :Rg<CR>
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "fzf end
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" multiple cursors 
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-let g:multi_cursor_use_default_mapping=0
-
-" Default mapping
-let g:multi_cursor_start_word_key      = '<C-n>'
-let g:multi_cursor_select_all_word_key = '<C-a>'
-let g:multi_cursor_start_key           = 'g<C-n>'
-let g:multi_cursor_select_all_key      = 'g<C-a>'
-let g:multi_cursor_next_key            = '<C-n>'
-let g:multi_cursor_prev_key            = '<C-p>'
-let g:multi_cursor_skip_key            = '<C-x>'
-let g:multi_cursor_quit_key            = '<Esc>'
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-"end multiple cursors
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "easymotion
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-map xx <Plug>(easymotion-prefix)
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+map ,, <Plug>(easymotion-prefix)
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "end easymotion
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-"
+
 "
 "Colors
 syntax on
