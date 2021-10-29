@@ -1,7 +1,49 @@
 {
+
+ "coc.preferences.jumpCommand": "tab drop",
  "python.venvPath": "~/.pyenv",
- "python.pythonPath": "~/bin/adams-python",
- "python.linting.lintOnSave": true,
- "python.jediEnabled": true, 
- "python.linting.pylintEnabled": true
+ "python.pythonPath": "~/bin/py-shim",
+ "python.linting.flake8Enabled": true,
+ "python.analysis.autoImportCompletions": false,
+ "python.linting.pylintEnabled": true,
+ "pyright.completion.snippetSupport": false,
+ "python.formatting.provider": "black",
+ "languageserver": {
+    "ocaml": {
+      "command": "ocamllsp",
+      "rootPatterns": ["dune-project"],
+      "filetypes": ["ocaml"],
+      "initializationOptions": {},
+      "settings": {}
+    },
+    "ccls": {
+        "command": "ccls",
+        "args": ["--log-file=/tmp/ccls.log", "-v=1"],
+        "filetypes": ["c", "cc", "cpp", "c++", "objc", "objcpp"],
+        "rootPatterns": [".ccls", "compile_commands.json", ".git/"],
+        "initializationOptions": {
+            "index": {
+                "onChange": true
+            },
+            "highlight": { "lsRanges" : true },
+            "cache": {
+            "directory": "/tmp/ccls"
+            },
+            "client": {
+                "snippetSupport": true
+            },
+            "clang": {
+                "resourceDir": "/Library/Developer/CommandLineTools/usr/lib/clang/12.0.0",
+                "extraArgs": [
+                  "-isystem",
+                  "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include/c++/v1",
+                  "-isystem",
+                  "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/",
+                  "-isystem",
+                  "/Library/Developer/CommandLineTools/usr/include"
+                ]
+            }        
+        }
+    }
+  }
 }

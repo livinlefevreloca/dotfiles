@@ -1,0 +1,11 @@
+[user]
+    email = adamtlefevre@gmail.com
+    name = Adam Lefevre
+[core]
+    excludesfile = /Users/adamlefevre/.gitignore
+[difftool]
+	prompt = false
+[diff]
+    tool = nvimdiff
+[difftool "nvimdiff"]
+    cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""

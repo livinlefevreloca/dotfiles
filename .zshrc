@@ -2,7 +2,7 @@
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
-export ZSH="/Users/adam.lefevre/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
 # load a random theme each time oh-my-zsh is loaded, in which case,
@@ -44,9 +44,8 @@ ZSH_THEME="xiong-chiamiov-plus-custom"
 # Uncomment the following line to enable command auto-correction.
 # ENABLE_CORRECTION="true"
 
-Uncomment the following line to display red dots whilst waiting for completion.
+#Uncomment the following line to display red dots whilst waiting for completion.
 COMPLETION_WAITING_DOTS="true"
-
 # Uncomment the following line if you want to disable marking untracked files
 # under VCS as dirty. This makes repository status check for large repositories
 # much, much faster.
@@ -72,6 +71,10 @@ plugins=(git)
 
 source $ZSH/oh-my-zsh.sh
 
+# key bindings
+bindkey -e
+bindkey \^U backward-kill-line
+
 # User configuration
 
 # export MANPATH="/usr/local/man:$MANPATH"
@@ -80,11 +83,11 @@ source $ZSH/oh-my-zsh.sh
 # export LANG=en_US.UTF-8
 
 # Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='nvim'
-# fi
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
+fi
 
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
@@ -98,49 +101,49 @@ source $ZSH/oh-my-zsh.sh
 
 
 #install required cli tools (please install brew first)
-touch temp
-if_not_i () {
-    if ! which $1;
-    then
-        echo $1 >> temp
-    fi
-}
-
-if_not_i ctags
-if_not_i exa
-if_not_i fd
-if_not_i fzf
-if_not_i git
-if_not_i jq
-if_not_i htop
-if_not_i hiredis
-if_not_i neovim
-if_not_i node
-if_not_i nmap
-if_not_i pyenv
-if_not_i pyenv-virtualenv
-if_not_i ripgrep
-if_not_i shellcheck
-if_not_i tfenv
-if_not_i tmux
-
-if [[ `cat temp` != "" ]];
-then
-    brew install `cat temp | xargs`
-fi
-rm temp
-
-if ! which cargo;
-then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-fi
-
-if ! which go;
-then
-    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
-    open ~/Downloads/go1.16.2.darwin-amd64.pkg
-    go version
-fi
+#touch temp
+#if_not_i () {
+#    if ! which $1;
+#    then
+#        echo $1 >> temp
+#    fi
+#}
+#
+#if_not_i ctags
+#if_not_i exa
+#if_not_i fd
+#if_not_i fzf
+#if_not_i git
+#if_not_i jq
+#if_not_i htop
+#if_not_i hiredis
+#if_not_i neovim
+#if_not_i node
+#if_not_i nmap
+#if_not_i pyenv
+#if_not_i pyenv-virtualenv
+#if_not_i ripgrep
+#if_not_i shellcheck
+#if_not_i tfenv
+#if_not_i tmux
+#
+#if [[ `cat temp` != "" ]];
+#then
+#    brew install `cat temp | xargs`
+#fi
+#rm temp
+#
+#if ! which cargo;
+#then
+#    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+#fi
+#
+#if ! which go;
+#then
+#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
+#    open ~/Downloads/go1.16.2.darwin-amd64.pkg
+#    go version
+#fi
 
 # end install
 
@@ -153,18 +156,25 @@ fi
 
 #git
 
-branch() { git branch | grep '\*' | awk '{print $2}' }
+curr_branch() { git branch | rg '\*' | awk '{print $2}'; }
 
-push() { git push ${1:-} origin $(branch); }
-pull() { git pull origin $(branch); }
+gpush () { git push ${1:-} origin $(curr_branch); }
+gpull () { git pull origin $(curr_branch); }
 
-checkout () {
-        git checkout `git branch | fzf`
-        pull
+gco () {
+    branch="${1}"
+    
+    if [[ -z "$branch" ]];
+    then
+        git checkout `git branch | fzf`;
+    else
+        git checkout "$branch"
+    fi
+    gpull
 }
 
 cp_branch () {
-	git branch | grep '\*.*' | cut -d' ' -f2 | pbcopy
+	git branch | rg '\*.*' | cut -d' ' -f2 | pbcopy
 }
 
 
@@ -178,59 +188,115 @@ pick-to-branch () {
 
 fast_push () {
     git commit -am "$@"
-    push
+    gpush
 }
 
-select-branch () {
-    git branch | fzf
+cp_commit () {
+    git log | head -1 | awk '{print $2}' | tr -d '\n' | y
 }
+
 #end
 
-#aws 
-
-change_profile () {
-    export AWS_PROFILE=${1}
-}
 #end aws
 
 # fzf functions
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-fzview () {
-    local flag=
-    if [[ $1 == '-s' ]]
-    then
-        local flag='-p'
-    fi    
-    bat $flag $(fd -H . ~ | fzf)
+
+edit () {
+    local lines=$(fd --full-path "$1")
+
+    if [ "$lines" = "" ]; then
+      return 1
+    elif [ $(wc -l <<< "$lines") -eq 1 ]; then
+      nvim "$lines"
+    else
+      nvim `echo "$lines" | fzf`
+    fi
+}
+
+fnd () {
+    
+    local filter
+    local definition
+    
+    while [[ "$#" > 1 ]]; do
+        case "$1" in
+        '-d'|'--def')
+            definition=1
+            shift ;;
+        '-f'|'--filter')
+            filter="$2"
+            shift
+            shift ;;
+        *)
+            echo "unexpected argument found $1 ... exiting"
+            exit(1) ;;
+        esac
+    done
+
+    local pattern="$1"
+
+    if [[ "$definition" == 1 ]] then
+        pattern="(def|class) $pattern"
+    fi
+
+    local lines=$(rg --column $pattern -t py)
+    
+    if [[ -n "$filter" ]] then
+        lines=$(echo "$lines" | rg -v "$filter")
+    fi
+
+    if [ "$lines" = "" ]; then
+      return 1
+    elif [ $(wc -l <<< "$lines") -eq 1 ]; then
+      nvim "$lines"
+    else
+      nvim `echo "$lines" | fzf`
+    fi
+
+}
+
+cls () {
+
+    local first
+
+    while [[ "$#" > 1 ]]; do
+        case "$1" in
+        '-1')
+            first=1
+            shift ;;
+        *)
+            echo "unexpected argument found $1 ... exiting"
+            exit(1) ;;
+        esac
+    done
+
+    if [[ "$first" != 1 ]] then
+        places=`rg --column -t py "class \w*$1\w*(\(|:)"`
+        test -n "$places" && place=`echo "$places" | fzf | cut -d: -f1-2`
+        test -n "$place" && nvim "$place" && return 0
+    
+    else
+        place=`rg --column -t py "class $1(\(|:)" | cut -d: -f1-2`
+        test -n "$place" && nvim "$place" && return 0
+    fi
 }
 
 
-fzedit () {
-    local root=~
-    if [[ $1 == '-r' ]]
-    then
-        local root=/
-    fi    
-    local file=$(fd -H . "$root" | fzf)
-    if [[ -n "$file" ]];
-        then
-            nvim -p $file
-        fi
-}
 #end fzf functions
 
 #useful functions
 
-tgrep () {
-    local pattern=$1
-    awk "NR == 1 {print}; /$pattern/"
-}
+
 
 #end useful functions
 
 #terraform
-export PATH="$HOME/.tfenv/bin:$PATH"
+if [[ $path == *"tfenv"* ]] 
+then
+    export PATH="$HOME/.tfenv/bin:$PATH"
+fi
 
 if [[ -n $TMUX ]]; then
     export RPROMPT=''
@@ -243,33 +309,98 @@ eval "$(pyenv virtualenv-init -)"
 
 
 activate () {
-    pyenv activate $1
+    pyenv activate $1 && \
+    fix && \
     export VENV=$1
-    fix
-    if ! pip freeze | grep "neovim" || ! pip freeze | grep "jedi" || ! pip freeze | grep "pylint"; then
-        pip install neovim jedi pylint
+    if ! pip3 freeze | grep "neovim" || ! pip3 freeze | grep "jedi" || ! pip3 freeze | grep "flake8" || ! pip3 freeze | grep "pylint" || ! pip3 freeze | grep "black" 
+    then
+        pip3 install neovim jedi pylint flake8 black
     fi
 }
 reset () {
     pyenv deactivate
-    unset VENV
+    export VENV=?
 }
+
+export PATH=/Users/adamlefevre/.pyenv/shims:$PATH
 
 #end pyenv
 
+#aws
+function s3du(){
+  bucket=`cut -d/ -f3 <<< $1`
+  prefix=`awk -F/ '{for (i=4; i<NF; i++) printf $i"/"; print $NF}' <<< $1`
+  aws s3api \
+    list-objects \
+    --bucket $bucket \
+    --prefix=$prefix \
+    --output text \
+    --query '[sum(Contents[].Size), length(Contents[])]' \
+    | while read -r size num_objects; do
+      jq '. |{ size:.[0],num_objects: .[1]}' <<< "[\"$(numfmt --to=si ${size})\",${num_objects}]"
+     done
+}
+
+function redshift-prod-psql(){
+    aws redshift get-cluster-credentials --db-user redshift_data_api_user --db-name albert_data_lake --cluster-identifier albert-production-data-warehouse | jq '.DbPassword' | tr -d '"' | tr -d '\n' | y
+    psql "host=10.161.21.44 port=5439 user=IAM:redshift_data_api_user dbname=albert_data_lake sslmode=verify-ca sslrootcert=/Users/adamlefevre/.redshift/redshift-ca-bundle.crt"
+}
+
+change_profile () {
+    export AWS_DEFAULT_PROFILE=${1}
+}
+
+login() {
+    if [[ -n "$1" ]] then
+        aws sso login --profile "$1"
+        return
+    fi
+    aws sso login --profile production
+    aws sso login --profile dev-engineer
+    aws sso login --profile devops
+}
+
+# end aws
+
+#Albert
+function find_class () {
+ nvim `rg -n  "class Property"'\(' | cat | xargs | tr -s ':' ' ' |  awk '{ print $1":"$2 }'`
+}
+#
+
 #kubectl
-source <(kubectl completion zsh)
-export KUBECONFIG="$HOME/.kube/config"
+#source <(kubectl completion zsh)
+#export KUBECONFIG="$HOME/.kube/config"
+#
+#
+#k8s_dash () {
+#  k8s_token && k port-forward svc/management-dashboard-kubernetes-dashboard -n kube-system 2020:443
+#}
+#fix_kubeconfig () {
+#  aws eks --region us-east-1 update-kubeconfig --name beta-eks-cluster
+#  aws eks --region us-east-1 update-kubeconfig --name prod-eks-cluster
+#  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/beta-eks-cluster beta
+#  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/prod-eks-cluster prod
+#}
 
+#go
+export GO111MODULE=on
 
-k8s_dash () {
-  k8s_token && k port-forward svc/management-dashboard-kubernetes-dashboard -n kube-system 2020:443
-}
-fix_kubeconfig () {
-  aws eks --region us-east-1 update-kubeconfig --name beta-eks-cluster
-  aws eks --region us-east-1 update-kubeconfig --name prod-eks-cluster
-  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/beta-eks-cluster beta
-  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/prod-eks-cluster prod
-}
+#Albert
+export ALBERT_PROJECTS=/Users/$USER/Projects/albert/
+export ALBERT_ROOT=/Users/$USER/Projects/albert/albert-main/
+export GITHUB_TOKEN=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
+export AWS_DEFAULT_PROFILE=dev-engineer
+#kube
+
+if [[ $path == *"krew"* ]] 
+then
+    export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+fi
 
 fix
+reset && activate albert
+cd $ALBERT_PROJECTS
+
+# opam configuration
+[[ ! -r /Users/adamlefevre/.opam/opam-init/init.zsh ]] || source /Users/adamlefevre/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null

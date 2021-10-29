@@ -1,1 +1,0 @@
-export PROMPT=`echo $PROMPT | sed 's/(.*) //'`
