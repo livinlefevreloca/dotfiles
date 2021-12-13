@@ -195,6 +195,10 @@ cp_commit () {
     git log | head -1 | awk '{print $2}' | tr -d '\n' | y
 }
 
+vdiff () {
+    nvim +DiffviewOpen
+}
+
 #end
 
 #end aws
@@ -202,17 +206,19 @@ cp_commit () {
 # fzf functions
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-
 edit () {
-    local lines=$(fd --full-path "$1")
-
-    if [ "$lines" = "" ]; then
-      return 1
-    elif [ $(wc -l <<< "$lines") -eq 1 ]; then
-      nvim "$lines"
+    lines=$(fd --full-path "$1")
+    
+    if [[ "${lines}" == "" ]]
+    then
+        return 1
+    elif [[ $(wc -l <<< "${lines}") -eq 1 ]]
+    then
+        nvim "$lines"
     else
-      nvim `echo "$lines" | fzf`
+        nvim $(echo "${lines}" | fzf)
     fi
+
 }
 
 fnd () {
@@ -241,18 +247,19 @@ fnd () {
         pattern="(def|class) $pattern"
     fi
 
-    local lines=$(rg --column $pattern -t py)
-    
+    local lines=$(rg --column $pattern -t py | awk '!/^$/')
+        
     if [[ -n "$filter" ]] then
         lines=$(echo "$lines" | rg -v "$filter")
     fi
-
+    
     if [ "$lines" = "" ]; then
       return 1
     elif [ $(wc -l <<< "$lines") -eq 1 ]; then
-      nvim "$lines"
+        location=$(echo "$lines" | rg -o '^[^:]+:\d+')
+        nvim "$location"
     else
-      nvim `echo "$lines" | fzf`
+        nvim `echo "$lines" | fzf | rg -o '^[^:]+:\d+'`
     fi
 
 }
@@ -369,19 +376,10 @@ function find_class () {
 #
 
 #kubectl
-#source <(kubectl completion zsh)
-#export KUBECONFIG="$HOME/.kube/config"
+source <(kubectl completion zsh)
+export KUBECONFIG="$HOME/.kube/config"
 #
 #
-#k8s_dash () {
-#  k8s_token && k port-forward svc/management-dashboard-kubernetes-dashboard -n kube-system 2020:443
-#}
-#fix_kubeconfig () {
-#  aws eks --region us-east-1 update-kubeconfig --name beta-eks-cluster
-#  aws eks --region us-east-1 update-kubeconfig --name prod-eks-cluster
-#  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/beta-eks-cluster beta
-#  k config rename-context arn:aws:eks:us-east-1:197867815768:cluster/prod-eks-cluster prod
-#}
 
 #go
 export GO111MODULE=on
@@ -393,10 +391,7 @@ export GITHUB_TOKEN=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
 export AWS_DEFAULT_PROFILE=dev-engineer
 #kube
 
-if [[ $path == *"krew"* ]] 
-then
-    export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-fi
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
 
 fix
 reset && activate albert
