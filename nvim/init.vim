@@ -20,12 +20,16 @@ set clipboard^=unnamed
 set ffs=unix
 " auto commands
 autocmd Filetype yaml set tabstop=2 | set shiftwidth=2
+autocmd FileType tsx set tabstop=2 | set shiftwidth=2
 autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
 autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
 autocmd FileType python let b:coc_root_patterns = ['.git']
 autocmd FileType python set colorcolumn=80
 autocmd FileType ocaml nnoremap <LocalLeader>t :MerlinTypeOf<CR>
- 
+autocmd FileType python vnoremap <C-c> :normal I# <CR>
+autocmd FileType python vnoremap <silent> <C-u> :s/# // <CR>,,
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
+
 
 " Instantiate Plugins
 "==================================================================================================================================================
@@ -89,15 +93,19 @@ nnoremap <leader>qa :xa<CR>
 nnoremap <leader>qq :q!<CR>
 nnoremap <leader><leader> <c-w>w
 nnoremap <leader> <c-w>
-nnoremap <leader>n :tabn<CR>
-nnoremap <leader>p :tabp<CR>
-nnoremap <leader>o :tabnew<CR>
 nnoremap <leader>c :tabc<CR>
 nnoremap <C-q> :w<CR>:bdelete<CR>
 nnoremap <silent> <leader>b :set relativenumber!<CR>
 nnoremap <leader>g :GBrowse<CR>
 nnoremap <silent> ,, :noh<CR>
 nnoremap <silent> , gt
+nnoremap <silent> s<leader>d :call CocAction('jumpDefinition', 'split ')<CR>
+nnoremap <silent> v<leader>d :call CocAction('jumpDefinition', 'vs ')<CR>
+nnoremap <silent> t<leader>d :call CocAction('jumpDefinition', 'tab drop ')<CR>
+
+nnoremap <silent> s<leader>r :call CocAction('jumpReferences', 'split ')<CR>
+nnoremap <silent> v<leader>r :call CocAction('jumpReferences', 'vs ')<CR>
+nnoremap <silent> t<leader>r :call CocAction('jumpReferences', 'tab drop ')<CR>
 
 " Plugin specifics
 "==================================================================================================================================================
@@ -185,7 +193,7 @@ nnoremap <leader>s :Rg<CR>
 let g:cpp_class_scope_highlight = 1
 let g:cpp_member_variable_highlight = 1
 let g:cpp_class_decl_highlight = 1
-nnoremap <Leader>, :ClangFormat<CR>
+nnoremap <leader>, :ClangFormat<CR>
 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "c++ end
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>

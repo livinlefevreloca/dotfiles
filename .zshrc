@@ -67,37 +67,14 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to $ZSH_CUSTOM/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git)
+plugins=(
+    git
+    kubectl
+)
 
+# set up ohmyzsh
 source $ZSH/oh-my-zsh.sh
-
-# key bindings
-bindkey -e
-bindkey \^U backward-kill-line
-
-# User configuration
-
-# export MANPATH="/usr/local/man:$MANPATH"
-
-# You may need to manually set your language environment
-# export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-if [[ -n $SSH_CONNECTION ]]; then
-  export EDITOR='vim'
-else
-  export EDITOR='nvim'
-fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-
+# end set up ohmyzsh
 
 
 #install required cli tools (please install brew first)
@@ -147,255 +124,53 @@ fi
 
 # end install
 
-
-# Example aliases
+# General Exports
+export SHELL_SCRIPTS="${HOME}/.shell"
 export EDITOR='/usr/local/bin/nvim'
-if [ -f ~/.aliases ]; then
-    . ~/.aliases
+export PATH="$(which cmake):$PATH"
+export GO111MODULE=on
+if [[ -n $SSH_CONNECTION ]]; then
+  export EDITOR='vim'
+else
+  export EDITOR='nvim'
 fi
 
-#git
-
-curr_branch() { git branch | rg '\*' | awk '{print $2}'; }
-
-gpush () { git push ${1:-} origin $(curr_branch); }
-gpull () { git pull origin $(curr_branch); }
-
-gco () {
-    branch="${1}"
-    
-    if [[ -z "$branch" ]];
-    then
-        git checkout `git branch | fzf`;
-    else
-        git checkout "$branch"
-    fi
-    gpull
-}
-
-cp_branch () {
-	git branch | rg '\*.*' | cut -d' ' -f2 | pbcopy
-}
-
-
-pick-to-branch () {
-        hash=`git log > temp && head -1 temp | cut -d' ' -f2`
-        git checkout "$1"
-        git cherry-pick "$hash"
-        rm temp
-}
-
-
-fast_push () {
-    git commit -am "$@"
-    gpush
-}
-
-cp_commit () {
-    git log | head -1 | awk '{print $2}' | tr -d '\n' | y
-}
-
-vdiff () {
-    nvim +DiffviewOpen
-}
-
-#end
-
-#end aws
-
-# fzf functions
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
-edit () {
-    lines=$(fd --full-path "$1")
-    
-    if [[ "${lines}" == "" ]]
-    then
-        return 1
-    elif [[ $(wc -l <<< "${lines}") -eq 1 ]]
-    then
-        nvim "$lines"
-    else
-        nvim $(echo "${lines}" | fzf)
-    fi
-
-}
-
-fnd () {
-    
-    local filter
-    local definition
-    
-    while [[ "$#" > 1 ]]; do
-        case "$1" in
-        '-d'|'--def')
-            definition=1
-            shift ;;
-        '-f'|'--filter')
-            filter="$2"
-            shift
-            shift ;;
-        *)
-            echo "unexpected argument found $1 ... exiting"
-            exit(1) ;;
-        esac
-    done
-
-    local pattern="$1"
-
-    if [[ "$definition" == 1 ]] then
-        pattern="(def|class) $pattern"
-    fi
-
-    local lines=$(rg --column $pattern -t py | awk '!/^$/')
-        
-    if [[ -n "$filter" ]] then
-        lines=$(echo "$lines" | rg -v "$filter")
-    fi
-    
-    if [ "$lines" = "" ]; then
-      return 1
-    elif [ $(wc -l <<< "$lines") -eq 1 ]; then
-        location=$(echo "$lines" | rg -o '^[^:]+:\d+')
-        nvim "$location"
-    else
-        nvim `echo "$lines" | fzf | rg -o '^[^:]+:\d+'`
-    fi
-
-}
-
-cls () {
-
-    local first
-
-    while [[ "$#" > 1 ]]; do
-        case "$1" in
-        '-1')
-            first=1
-            shift ;;
-        *)
-            echo "unexpected argument found $1 ... exiting"
-            exit(1) ;;
-        esac
-    done
-
-    if [[ "$first" != 1 ]] then
-        places=`rg --column -t py "class \w*$1\w*(\(|:)"`
-        test -n "$places" && place=`echo "$places" | fzf | cut -d: -f1-2`
-        test -n "$place" && nvim "$place" && return 0
-    
-    else
-        place=`rg --column -t py "class $1(\(|:)" | cut -d: -f1-2`
-        test -n "$place" && nvim "$place" && return 0
-    fi
-}
-
-
+# fzf
+[[ ! -n "$FZF_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/fzf.zsh" ]] && source ${SHELL_SCRIPTS}/fzf.zsh
 #end fzf functions
 
-#useful functions
+# key bindings
+[[ -f "${SHELL_SCRIPTS}/bindings.zsh" ]] && source "${SHELL_SCRIPTS}/bindings.zsh"
+# end key bindings
 
+# aliases
+[ -f "${SHELL_SCRIPTS}/.aliases" ] && source "${SHELL_SCRIPTS}/.aliases"
+# end aliases
 
+# git
+[[ ! -n "$GIT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/git.zsh" ]] && source "${SHELL_SCRIPTS}/git.zsh"
+# end git
 
-#end useful functions
-
-#terraform
-if [[ $path == *"tfenv"* ]] 
-then
-    export PATH="$HOME/.tfenv/bin:$PATH"
-fi
-
-if [[ -n $TMUX ]]; then
-    export RPROMPT=''
-fi
+# k8s
+[[ ! -n "$K8S_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/k8s.zsh" ]] && source "${SHELL_SCRIPTS}/k8s.zsh"
+# end k8s
 
 # pyenv
-
-eval "$(pyenv init -)"
-eval "$(pyenv virtualenv-init -)"
-
-
-activate () {
-    pyenv activate $1 && \
-    fix && \
-    export VENV=$1
-    if ! pip3 freeze | grep "neovim" || ! pip3 freeze | grep "jedi" || ! pip3 freeze | grep "flake8" || ! pip3 freeze | grep "pylint" || ! pip3 freeze | grep "black" 
-    then
-        pip3 install neovim jedi pylint flake8 black
-    fi
-}
-reset () {
-    pyenv deactivate
-    export VENV=?
-}
-
-export PATH=/Users/adamlefevre/.pyenv/shims:$PATH
-
+[[ ! -n "$PYENV_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/pyenv.zsh" ]] && source "${SHELL_SCRIPTS}/pyenv.zsh"
 #end pyenv
 
 #aws
-function s3du(){
-  bucket=`cut -d/ -f3 <<< $1`
-  prefix=`awk -F/ '{for (i=4; i<NF; i++) printf $i"/"; print $NF}' <<< $1`
-  aws s3api \
-    list-objects \
-    --bucket $bucket \
-    --prefix=$prefix \
-    --output text \
-    --query '[sum(Contents[].Size), length(Contents[])]' \
-    | while read -r size num_objects; do
-      jq '. |{ size:.[0],num_objects: .[1]}' <<< "[\"$(numfmt --to=si ${size})\",${num_objects}]"
-     done
-}
-
-function redshift-prod-psql(){
-    aws redshift get-cluster-credentials --db-user redshift_data_api_user --db-name albert_data_lake --cluster-identifier albert-production-data-warehouse | jq '.DbPassword' | tr -d '"' | tr -d '\n' | y
-    psql "host=10.161.21.44 port=5439 user=IAM:redshift_data_api_user dbname=albert_data_lake sslmode=verify-ca sslrootcert=/Users/adamlefevre/.redshift/redshift-ca-bundle.crt"
-}
-
-change_profile () {
-    export AWS_DEFAULT_PROFILE=${1}
-}
-
-login() {
-    if [[ -n "$1" ]] then
-        aws sso login --profile "$1"
-        return
-    fi
-    aws sso login --profile production
-    aws sso login --profile dev-engineer
-    aws sso login --profile devops
-}
-
+[[ ! -n "$AWS_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/aws.zsh" ]] && source "${SHELL_SCRIPTS}/aws.zsh"
 # end aws
 
-#Albert
-function find_class () {
- nvim `rg -n  "class Property"'\(' | cat | xargs | tr -s ':' ' ' |  awk '{ print $1":"$2 }'`
-}
-#
-
-#kubectl
-source <(kubectl completion zsh)
-export KUBECONFIG="$HOME/.kube/config"
-#
-#
-
-#go
-export GO111MODULE=on
-
-#Albert
-export ALBERT_PROJECTS=/Users/$USER/Projects/albert/
-export ALBERT_ROOT=/Users/$USER/Projects/albert/albert-main/
-export GITHUB_TOKEN=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
-export AWS_DEFAULT_PROFILE=dev-engineer
-#kube
-
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-
-fix
-reset && activate albert
-cd $ALBERT_PROJECTS
+# terraform
+[[ ! -n "$TERRAFORM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/terraform.zsh" ]] && source "${SHELL_SCRIPTS}/terraform.zsh"
+# end aws
 
 # opam configuration
 [[ ! -r /Users/adamlefevre/.opam/opam-init/init.zsh ]] || source /Users/adamlefevre/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
+# end opam
+
+#Albert
+[[ ! -n "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
+# end Albert

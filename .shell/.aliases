@@ -1,3 +1,5 @@
+echo "Sourcing alias module"
+
 alias _complete=_bash_comp
 alias _expand=_bash_expand
 alias creds='nvim ~/.aws/credentials'
@@ -40,7 +42,7 @@ alias oaf='nvim ~/.aliases'
 alias orc='nvim ~/.zshrc'
 alias src='. ~/.zshrc'
 alias vconf='nvim ~/.config/nvim/init.vim'
-alias y=pbcopy
+alias y='pbcopy'
 alias p=pbpaste
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
