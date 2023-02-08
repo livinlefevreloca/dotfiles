@@ -1,7 +1,5 @@
 echo "Sourcing git module"
 
-export GITHUB_TOKEN=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
-
 curr_branch() { git branch | rg '\*' | awk '{print $2}'; }
 
 ga () {
