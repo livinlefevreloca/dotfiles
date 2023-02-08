@@ -1,0 +1,9 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhistcnt =7
+let g:netrw_dirhist_7='/Users/adamlefevre/Projects/albert'
+let g:netrw_dirhist_6='/Users/adamlefevre/.config'
+let g:netrw_dirhist_5='/Users/adamlefevre/.config/nvim'
+let g:netrw_dirhist_4='/Users/adamlefevre/.config'
+let g:netrw_dirhist_3='/Users/adamlefevre/Projects/albert/albert-terraform-databases/batch'
+let g:netrw_dirhist_2='/Users/adamlefevre/Projects/albert/albert-terraform-databases'
+let g:netrw_dirhist_1='/Users/adamlefevre/Projects/albert/albert-dbt-analytics-transforms'
