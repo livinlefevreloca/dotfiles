@@ -103,6 +103,7 @@ source $ZSH/oh-my-zsh.sh
 #if_not_i shellcheck
 #if_not_i tfenv
 #if_not_i tmux
+#if_not_i bear
 #
 #if [[ `cat temp` != "" ]];
 #then
@@ -117,7 +118,7 @@ source $ZSH/oh-my-zsh.sh
 #
 #if ! which go;
 #then
-#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
+#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.1.20.darwin-arm64.pkg && cd -)
 #    open ~/Downloads/go1.16.2.darwin-amd64.pkg
 #    go version
 #fi
