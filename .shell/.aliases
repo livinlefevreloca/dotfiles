@@ -1,11 +1,15 @@
 echo "Sourcing alias module"
 
+
+(alias | rg '^ga=' &> /dev/null) && unalias ga
+(alias | rg '^grs=' &> /dev/null) && unalias grs
+(alias | rg '^gco=' &> /dev/null) && unalias gco
+
 alias _complete=_bash_comp
 alias _expand=_bash_expand
 alias creds='nvim ~/.aws/credentials'
 alias distro='cat /etc/*-release'
 alias fix='. ~/bin/fix.sh'
-alias ga='git add'
 alias gb='git branch'
 alias gbD='git branch -D'
 alias gc='git commit -m'
@@ -22,13 +26,14 @@ alias gr='git reflog'
 alias google='noglob '\''/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\'
 alias grb='git rebase'
 alias grbm='git rebase origin/master'
-alias grs='git restore --staged'
 alias gst='git stash'
 alias gs='git status'
-unalias gco
+alias gcot='git checkout'
 
 alias history=omz_history
 alias j=jobs
+
+alias iex='iex --erl "-kernel shell_history enabled"'
 
 alias k=kubectl
 alias ks='kubectl ns'
@@ -38,10 +43,13 @@ alias ls=exa
 alias md='mkdir -p'
 alias rd=rmdir
 
-alias oaf='nvim ~/.aliases'
+alias oaf='nvim ~/.shell/.aliases'
 alias orc='nvim ~/.zshrc'
 alias src='. ~/.zshrc'
+alias tconf='nvim ~/.tmux.conf'
 alias vconf='nvim ~/.config/nvim/init.vim'
+alias kconf='nvim ~/.kube/config'
+alias awsconf='nvim ~/.aws/config'
 alias y='pbcopy'
 alias p=pbpaste
 
@@ -51,3 +59,5 @@ alias dm=lazydocker
 alias tf=terraform
 alias al='cd $ALBERT_PROJECTS'
 alias pr='cd ~/Projects/personal'
+alias mydocker='docker build -t mydocker . && docker run --cap-add="SYS_ADMIN" mydocker'
+alias saf='source ~/.shell/.aliases'
