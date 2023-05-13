@@ -1,22 +1,25 @@
 {
- "suggest.noselect": true,
- "python.venvPath": "~/.pyenv",
- "python.pythonPath": "~/bin/py-shim",
- "python.linting.flake8Enabled": true,
- "python.analysis.autoImportCompletions": false,
- "python.linting.pylintEnabled": true,
- "pyright.completion.snippetSupport": false,
- "python.formatting.provider": "black",
- "rust-analyzer.checkOnSave.command": "clippy",
- "clangd.compilationDatabaseCandidates": ["${workspaceFolder}"],
+  "suggest.noselect": true,
+  "python.venvPath": "~/.pyenv",
+  "python.pythonPath": "~/bin/py-shim",
+  "python.analysis.autoImportCompletions": false,
+  "python.linting.pylintEnabled": true,
+  "pyright.completion.snippetSupport": false,
+  "rust-analyzer.checkOnSave.command": "clippy",
+  "clangd.compilationDatabaseCandidates": [
+    "${workspaceFolder}"
+  ],
   "elixir.pathToElixirLS": "~/.elixir-ls/release/language_server.sh",
- "languageserver": {
-    "ocaml": {
-      "command": "ocamllsp",
-      "rootPatterns": ["dune-project"],
-      "filetypes": ["ocaml"],
-      "initializationOptions": {},
-      "settings": {}
-    }
+  "languageserver": {
+      "terraform": {
+            "command": "terraform-ls",
+            "args": ["serve"],
+            "filetypes": [
+                "terraform",
+                "tf"
+            ],
+            "initializationOptions": {},
+            "settings": {}
+        }
   }
 }

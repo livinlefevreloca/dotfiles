@@ -1,6 +1,6 @@
 echo "Sourcing terraform module"
 
-if [[ $path != *"tfenv"* ]] 
+if [[ "$path" != *"tfenv"* ]]
 then
     export PATH="$HOME/.tfenv/bin:$PATH"
 fi

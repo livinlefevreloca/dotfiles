@@ -103,7 +103,6 @@ source $ZSH/oh-my-zsh.sh
 #if_not_i shellcheck
 #if_not_i tfenv
 #if_not_i tmux
-#if_not_i bear
 #
 #if [[ `cat temp` != "" ]];
 #then
@@ -118,7 +117,7 @@ source $ZSH/oh-my-zsh.sh
 #
 #if ! which go;
 #then
-#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.1.20.darwin-arm64.pkg && cd -)
+#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
 #    open ~/Downloads/go1.16.2.darwin-amd64.pkg
 #    go version
 #fi
@@ -141,6 +140,10 @@ then
     source <(env | rg '_SET=1' | awk -F '=' '{print "unset "$1}')
 fi
 
+if [[ $(env | rg VIMRUNTIME) ]]
+then
+    echo "Running from vim skipping modules"
+else
 # fzf
 [[ ! "$FZF_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/fzf.zsh" ]] && source ${SHELL_SCRIPTS}/fzf.zsh
 #end fzf functions
@@ -184,3 +187,9 @@ fi
 #Albert
 [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end Albert
+
+
+fi
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion

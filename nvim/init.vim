@@ -29,38 +29,49 @@ autocmd FileType python vnoremap <silent> <C-u> :s/# // <CR>:noh<CR>
 autocmd FileType go vnoremap <C-c> :normal I// <CR>
 autocmd FileType go vnoremap <silent> <C-u> :s/\/\/ // <CR>:noh<CR>
 
+command Vconf :e $MYVIMRC
 
 " Instantiate Plugins
 "==================================================================================================================================================
 " Plugins installed for use with nvim
 "==================================================================================================================================================
 call plug#begin('~/.config/nvim/plugged')
-Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
+"Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
 Plug 'junegunn/fzf.vim'
 Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'neoclide/coc-python'
 Plug 'jackguo380/vim-lsp-cxx-highlight'
-Plug 'rhysd/vim-clang-format'
 Plug 'vim-syntastic/syntastic'
 Plug 'machakann/vim-highlightedyank'
-Plug 'neoclide/coc-python'
-Plug 'itchyny/lightline.vim'
+" Style
 Plug 'overcache/NeoSolarized'
+Plug 'itchyny/lightline.vim'
 Plug 'taohexxx/lightline-solarized'
+" terraform
 Plug 'hashivim/vim-terraform'
+" for typescript and react
 Plug 'pangloss/vim-javascript'
 Plug 'leafgarland/typescript-vim'
 Plug 'peitalin/vim-jsx-typescript'
 Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
+" github plugins
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
+" Open file at line
 Plug 'bogado/file-line'
+" for smooth scrolling
 Plug 'psliwka/vim-smoothie'
+" for diffview
 Plug 'sindrets/diffview.nvim'
-Plug 'kyazdani42/nvim-web-devicons'
 Plug 'nvim-lua/plenary.nvim'
-Plug 'elixir-editors/vim-elixir'
+Plug 'kyazdani42/nvim-web-devicons'
+" for github copilot
+Plug 'github/copilot.vim'
+" jupyter notebooks in vim
+Plug 'luk400/vim-jukit'
+
 call plug#end()
 "
 
@@ -74,7 +85,6 @@ let mapleader=' '
 " insert mappings
 imap ii <Esc>
 inoremap <silent> <c-u> <esc>viwU<esc>a
-
 " normal mappings
 nnoremap <silent> <C-s> :source $MYVIMRC<CR>
 nnoremap <C-k> O<ESC>j 
@@ -91,14 +101,13 @@ vnoremap > >gv
 nnoremap <leader>w :w<CR>
 nnoremap <leader>qa :xa<CR>
 nnoremap <leader>q :q!<CR>
-nnoremap <leader><leader> <c-w>w
-nnoremap <leader> <c-w>
 nnoremap <leader>c :tabc<CR>
 nnoremap <leader>g :GBrowse<CR>
 
 nnoremap <silent> \\ :noh<CR>
 nnoremap <silent> <C-l> :set relativenumber!<CR>
 
+tnoremap <silent> <leader><ESC> <C-\><C-n>
 
 "==================================================================================================================================================
 " Settings for plugins used with neovim
@@ -110,42 +119,24 @@ nnoremap <silent> <C-l> :set relativenumber!<CR>
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " open Nerdtree on startup
 "autocmd vimenter * NERDTree | wincmd p
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
-" close vim if nerd tree is the only window left
-autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
-let g:NERDTreeWinSize=40
-let g:NERDTreeWinPos = "right"
-"map toggle
-map <C-n> :NERDTreeToggle<CR>
-" prevent crashes due to vim-plug
-let g:plug_window = 'noautocmd vertical topleft new'
+"autocmd StdinReadPre * let s:std_in=1
+"autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
+"" close vim if nerd tree is the only window left
+"autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
+"let g:NERDTreeWinSize=40
+"let g:NERDTreeWinPos = "right"
+""map toggle
+"map <C-n> :NERDTreeToggle<CR>
+"" prevent crashes due to vim-plug
+"let g:plug_window = 'noautocmd vertical topleft new'
 
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc-vim 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
 " Coc specific mapppings
-"inoremap <expr> <cr> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
-"nmap <leader>d <Plug>(coc-definition)
-"nmap <leader>y <Plug>(coc-type-definition)
-"nmap <leader>i <Plug>(coc-implementation)
-"nmap <leader>r <Plug>(coc-references)
-"nnoremap <silent> s<leader>d :call CocAction('jumpDefinition', 'split ')<CR>
-"nnoremap <silent> v<leader>d :call CocAction('jumpDefinition', 'vs ')<CR>
-"nnoremap <silent> t<leader>d :call CocAction('jumpDefinition', 'tab drop ')<CR>
-"nnoremap <silent> s<leader>r :call CocAction('jumpReferences', 'split ')<CR>
-"nnoremap <silent> v<leader>r :call CocAction('jumpReferences', 'vs ')<CR>
-"nnoremap <silent> t<leader>r :call CocAction('jumpReferences', 'tab drop ')<CR>
-"
-""Allow scrolling in coc windows
-"nnoremap <nowait><expr> <C-f> coc#float#has_scroll() ? coc#float#scroll(1) : "\<C-f>"
-"nnoremap <nowait><expr> <C-b> coc#float#has_scroll() ? coc#float#scroll(0) : "\<C-b>"
-"inoremap <nowait><expr> <C-f> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(1)\<cr>" : "\<Right>"
-"inoremap <nowait><expr> <C-b> coc#float#has_scroll() ? "\<c-r>=coc#float#scroll(0)\<cr>" : "\<Left>"
-let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-clangd']
 
+let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir']
 """ Customize colors
 func! s:my_colors_setup() abort
     hi CocFloating guibg=#30313d
@@ -201,6 +192,12 @@ nmap <silent> gd <Plug>(coc-definition)
 nmap <silent> gy <Plug>(coc-type-definition)
 nmap <silent> gi <Plug>(coc-implementation)
 nmap <silent> gr <Plug>(coc-references)
+nnoremap <silent> sgd :call CocAction('jumpDefinition', 'split ')<CR>
+nnoremap <silent> vgd :call CocAction('jumpDefinition', 'vs ')<CR>
+nnoremap <silent> tgd :call CocAction('jumpDefinition', 'tab drop ')<CR>
+nnoremap <silent> sgr :call CocAction('jumpReferences', 'split ')<CR>
+nnoremap <silent> vgr :call CocAction('jumpReferences', 'vs ')<CR>
+nnoremap <silent> tgr :call CocAction('jumpReferences', 'tab drop ')<CR>
 
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call ShowDocumentation()<CR>
@@ -268,6 +265,10 @@ let g:terraform_fmt_on_save=1
 nnoremap <leader>f :Files<CR>
 nnoremap <leader>s :Rg<CR>
 nnoremap <leader>b :Buffers<CR>
+nnoremap <leader>h :History:<CR>
+nnoremap <leader>hf :History<CR>
+nnoremap <leader>hs :History/<CR>
+nnoremap <leader>gf :GFiles?<CR>
 
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -276,13 +277,7 @@ nnoremap <leader>b :Buffers<CR>
 let g:cpp_class_scope_highlight = 1
 let g:cpp_member_variable_highlight = 1
 let g:cpp_class_decl_highlight = 1
-nnoremap <leader>, :ClangFormat<CR>
 
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-"syntastic
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-let g:syntastic_mode_map = { 'passive_filetypes': ['python'] }
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " lightline
@@ -307,29 +302,28 @@ set background=dark " or light if you prefer the light version
 colorscheme NeoSolarized
 hi TabLineSel ctermfg=Red ctermbg=white
 
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" Ocaml
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-let g:opamshare = substitute(system('opam var share'),'\n$','','''')
-execute "set rtp+=" . g:opamshare . "/merlin/vim"
-let g:syntastic_ocaml_checkers = ['merlin']
-
-nnoremap <silent> gh :call <SID>show_documentation()<CR>
-
-function! s:show_documentation()
-  if (index(['vim','help'], &filetype) >= 0)
-    execute 'h '.expand('<cword>')
-  else
-    call CocAction('doHover')
-  endif
-endfunction
-
-
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Syntastic
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 let g:syntastic_mode_map = {
     \ "mode": "passive",
     \ "active_filetypes": ["sh"],
-    \ "passive_filetypes": [] }
+    \ "passive_filetypes": ["python"] }
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" Jukit
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" remap send to kernel
+autocmd FileType python nnoremap <leader>z :call jukit#send#section(0)<cr>
+"   - Jump to the next cell below
+autocmd FileType python nnoremap <leader>J :call jukit#cells#jump_to_next_cell()<cr>
+"   - Jump to the previous cell above
+autocmd FileType python nnoremap <leader>K :call jukit#cells#jump_to_previous_cell()<cr>
+
+fun! GetValue()
+    let visual_selection = jukit#util#get_visual_selection()
+    let cmd = visual_selection
+    call jukit#send#send_to_split(cmd)
+endfun
+
+autocmd FileType python vnoremap C :call GetValue()<cr>
+
