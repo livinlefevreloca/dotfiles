@@ -15,10 +15,12 @@ set shiftwidth=4
 set expandtab
 set cursorline
 set termguicolors
+set splitright
 set clipboard^=unnamed
 "set mouse=a
 set ffs=unix
 " auto commands
+autocmd!
 autocmd filetype {yaml,tsx,sh} set tabstop=2 | set shiftwidth=2
 autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
 autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
@@ -31,10 +33,26 @@ autocmd FileType go vnoremap <silent> <C-u> :s/\/\/ // <CR>:noh<CR>
 
 command Vconf :e $MYVIMRC
 
+
+
 " Instantiate Plugins
 "==================================================================================================================================================
 " Plugins installed for use with nvim
 "==================================================================================================================================================
+let g:plugs_disabled = ['luk400/vim-jukit']
+function! Plug_disable()
+  for name in g:plugs_disabled
+    if has_key(g:plugs, name)
+      call remove(g:plugs, name)
+    endif
+
+    let idx = index(g:plugs_order, name)
+    if idx > -1
+      call remove(g:plugs_order, idx)
+    endif
+  endfor
+endfunction
+
 call plug#begin('~/.config/nvim/plugged')
 "Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -51,6 +69,7 @@ Plug 'itchyny/lightline.vim'
 Plug 'taohexxx/lightline-solarized'
 " terraform
 Plug 'hashivim/vim-terraform'
+Plug 'juliosueiras/vim-terraform-completion'
 " for typescript and react
 Plug 'pangloss/vim-javascript'
 Plug 'leafgarland/typescript-vim'
@@ -71,7 +90,7 @@ Plug 'kyazdani42/nvim-web-devicons'
 Plug 'github/copilot.vim'
 " jupyter notebooks in vim
 Plug 'luk400/vim-jukit'
-
+call Plug_disable()
 call plug#end()
 "
 
@@ -112,24 +131,6 @@ tnoremap <silent> <leader><ESC> <C-\><C-n>
 "==================================================================================================================================================
 " Settings for plugins used with neovim
 "==================================================================================================================================================
-
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" Nerdtree 
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" open Nerdtree on startup
-"autocmd vimenter * NERDTree | wincmd p
-"autocmd StdinReadPre * let s:std_in=1
-"autocmd VimEnter * if argc() == 1 && isdirectory(argv()[0]) && !exists("s:std_in") | exe 'NERDTree' argv()[0] | wincmd p | ene | exe 'cd '.argv()[0] | endif
-"" close vim if nerd tree is the only window left
-"autocmd bufenter * if (winnr("$") == 1 && exists("b:NERDTree") && b:NERDTree.isTabTree()) | q | endif
-"let g:NERDTreeWinSize=40
-"let g:NERDTreeWinPos = "right"
-""map toggle
-"map <C-n> :NERDTreeToggle<CR>
-"" prevent crashes due to vim-plug
-"let g:plug_window = 'noautocmd vertical topleft new'
-
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc-vim 
@@ -309,6 +310,33 @@ let g:syntastic_mode_map = {
     \ "mode": "passive",
     \ "active_filetypes": ["sh"],
     \ "passive_filetypes": ["python"] }
+
+" Terraform autocomplete
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+" (Optional)Remove Info(Preview) window
+set completeopt-=preview
+
+" (Optional)Hide Info(Preview) window after completions
+autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+
+" (Optional) Enable terraform plan to be include in filter
+let g:syntastic_terraform_tffilter_plan = 1
+
+" (Optional) Default: 0, enable(1)/disable(0) plugin's keymapping
+let g:terraform_completion_keys = 1
+
+" (Optional) Default: 1, enable(1)/disable(0) terraform module registry completion
+let g:terraform_registry_module_completion = 0
+
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Jukit
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -327,3 +355,7 @@ endfun
 
 autocmd FileType python vnoremap C :call GetValue()<cr>
 
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" Custom netrw settings
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+let g:netrw_preview = 1

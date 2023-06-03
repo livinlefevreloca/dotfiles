@@ -5,7 +5,7 @@ echo "Sourcing aws module"
 #
 function s3du(){
     bucket=$(cut -d/ -f3 <<< "$1")
-    prefix=$(awk -F/ '{for (i=4; i<NF; i++) printf $i"/"; print $NF}' <<< $1
+    prefix=$(awk -F/ '{for (i=4; i<NF; i++) printf $i"/"; print $NF}') <<< "$1"
     aws s3api \
         list-objects \
         --bucket "$bucket" \

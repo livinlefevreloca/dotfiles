@@ -2,6 +2,7 @@ echo "Sourcing albert module"
 
 export ALBERT_PROJECTS="/Users/$USER/Projects/albert/"
 export ALBERT_ROOT="/Users/$USER/Projects/albert/albert-main/"
+export LOOKER_DIR="${ALBERT_PROJECTS}looker"
 export GITHUB_TOKEN="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"
 export AWS_DEFAULT_PROFILE=dev-engineer
 export DEFAULT_VENV=albert
@@ -92,9 +93,28 @@ function staging_dsn() {
 #
 function redshift-prod-psql(){
     local db="$1"
+    local user
     shift;
-    PGPASSWORD=$(aws redshift get-cluster-credentials --db-user redshift_data_api_user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile production | jq '.DbPassword' | tr -d '"' | tr -d '\n') \
-    psql "host=10.161.21.44 port=5439 user=IAM:redshift_data_api_user dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
+
+    if [[ -z "$db" ]]; then
+        echo "Please provide a database name"
+        return 1
+    fi
+
+    while getopts "s" opt; do
+        case $opt in
+            s) user="guteqqidwjrb"
+            ;;
+        esac
+    done
+    
+    if [[ -z "$user" ]]; then
+        user="redshift_data_api_user"
+    fi
+    
+    shift $((OPTIND -1))
+    PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile production | jq '.DbPassword' | tr -d '"' | tr -d '\n') \
+    psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
 #
@@ -106,6 +126,21 @@ login() {
     fi
     aws sso login
     AWS_DEFAULT_PROFILE="$profile"
+}
+
+#
+# Open a Looker explore from the command line
+#
+function looker() {
+    local model="$1"
+    local explore="$2"
+    if [[ ! -n "$model" ]] then
+        model=$(ls "${LOOKER_DIR}/tables/" | fzf)
+    fi
+    if [[ ! -n "$explore" ]] then
+        explore=$(ls "${LOOKER_DIR}/tables/${model}/" | cut -d'.' -f1 | fzf)
+    fi
+    open "https://albert.cloud.looker.com/explore/${model}/${model}_${explore}"
 }
 
 # reset and activate the default python virtual environment

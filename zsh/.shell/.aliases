@@ -2,8 +2,8 @@ echo "Sourcing alias module"
 
 
 (alias | rg '^ga=' &> /dev/null) && unalias ga
-(alias | rg '^grs=' &> /dev/null) && unalias grs
-(alias | rg '^gco=' &> /dev/null) && unalias gco
+(alias | rg '^gr=' &> /dev/null) && unalias gr
+(alias | rg '^grm=' &> /dev/null) && unalias grm
 
 alias _complete=_bash_comp
 alias _expand=_bash_expand
@@ -14,7 +14,6 @@ alias gb='git branch'
 alias gbD='git branch -D'
 alias gc='git commit -m'
 alias gca='git commit -a -m'
-alias gbc='git checkout -b'
 alias gcf='git config --list'
 alias gcl='git clone'
 alias gcp='git cherry-pick'
@@ -22,13 +21,12 @@ alias gf='git fetch'
 alias gfa='git fetch --all --prune --jobs=10'
 alias gfo='git fetch origin'
 alias gl='git log'
-alias gr='git reflog'
-alias google='noglob '\''/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'\'
+alias grf='git reflog'
 alias grb='git rebase'
 alias grbm='git rebase origin/master'
 alias gst='git stash'
 alias gs='git status'
-alias gcot='git checkout'
+alias gco='git checkout'
 
 alias history=omz_history
 alias j=jobs
@@ -44,6 +42,7 @@ alias md='mkdir -p'
 alias rd=rmdir
 
 alias oaf='nvim ~/.shell/.aliases'
+saf='source ~/.shell/.aliases'
 alias orc='nvim ~/.zshrc'
 alias src='. ~/.zshrc'
 alias tconf='nvim ~/.tmux.conf'
@@ -52,6 +51,7 @@ alias kconf='nvim ~/.kube/config'
 alias awsconf='nvim ~/.aws/config'
 alias y='pbcopy'
 alias p=pbpaste
+alias n='nvim'
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
 alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'

@@ -104,6 +104,7 @@ source $ZSH/oh-my-zsh.sh
 #if_not_i shellcheck
 #if_not_i tfenv
 #if_not_i tmux
+#if_not_i bat
 #
 #if [[ `cat temp` != "" ]];
 #then
@@ -177,13 +178,13 @@ else
 [[ ! "$TERRAFORM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/terraform.zsh" ]] && source "${SHELL_SCRIPTS}/terraform.zsh"
 # end aws
 
-# opam configuration
-[[ ! -r /Users/adamlefevre/.opam/opam-init/init.zsh ]] || source /Users/adamlefevre/.opam/opam-init/init.zsh  > /dev/null 2> /dev/null
-# end opam
-#
 # utils
 [[ ! "$UTIL_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/utils.zsh" ]] && source ${SHELL_SCRIPTS}/utils.zsh
 #end utils functions
+
+# notes
+[[ ! "$NOTES_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/notes.zsh" ]] && source ${SHELL_SCRIPTS}/notes.zsh
+#end note
 
 #Albert
 [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"

@@ -4,19 +4,16 @@ echo "Sourcing fzf module"
 # Enable fzf
 #
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+export BAT_THEME='gruvbox-dark'
 
 #
 # Open file similar to the passed name. If there are multiple matches, open fzf to select
 #
 edit () {
-    local pattern
+    local query
     local hidden
     local ignore
-    if [[ -n "$1" && "${1:0:1}" != "-" ]]
-    then
-        pattern="$1"
-        shift;
-    fi
+    local target
     while getopts 'hi' opt; do
         case "$opt" in
             h)
@@ -28,25 +25,34 @@ edit () {
                 return 1 ;;
         esac
     done
-    
-    if [[ -n "$pattern" ]]
+    shift $((OPTIND -1))
+    query="$1"
+
+    if [[ -f $(echo "$query" | cut -d":" -f1) ]]
     then
-        pattern="${pattern}"
-    else
-        pattern=".*"
+        nvim "$query"
+        return 0
     fi
-    lines=$(fd $hidden $ignore --full-path --regex "$pattern" .)
+
+    lines=$(fd --full-path $hidden $ignore -t f "$query")
+    if [[ $(echo "$lines" | wc -l) -eq 1 ]]
+    then
+        nvim "$lines"
+        return 0
+    fi
+    lines=$(fd $hidden $ignore -t f --full-path)
 
     if [[ "$lines" == "" ]]
     then
         return 1
-    elif [[ $(wc -l <<< "$lines") -eq 1 ]]
-    then
-        nvim "$lines"
     else
-        nvim $(echo "$lines" | fzf -m)
+        target=$(echo "$lines" | fzf -q "$query" -m --preview 'bat {} --color=always' | xargs)
     fi
-
+    
+    if [[ -n "$target" ]]
+    then
+        nvim $(echo $target)
+    fi
 }
 
 #
@@ -54,42 +60,57 @@ edit () {
 #
 fnd () {
 
-    local filter
+    local filter='-g!**test**'
     local definition
     local file_type
     local prefix
+    local hidden
+    local ignore
 
-    local pattern="$1"
-    shift
-
-    local file_type=$(_get_default_file_type)
-    while getopts 'dt:' opt; do
+    local file_type="-t $(_get_default_file_type)"
+    while getopts 'adhi:t:f:' opt; do
         case "$opt" in
+            a)
+                file_type="-t all" ;;
             d)
                 definition=1 ;;
+            h)
+                hidden="--hidden" ;;
+            i) 
+                ignore="--no-ignore" ;;
+            f)
+                filter=$OPTARG ;;
             t)
-                file_type="$OPTARG" ;;
+                if [[ "$file_type" == 'all' ]]
+                then
+                    echo "cannot specify file type when searching all files"
+                    return 1
+                fi
+                file_type="-t $OPTARG" ;;
             \?)
                 echo "unexpected argument found $1"
                 return 1 ;;
             esac
     done
 
+    shift $((OPTIND -1))
+    local pattern="$1"
+    echo "file type is ${file_type}" 
 
     if [[ "$definition" == 1 ]] then
-        echo "file type is ${file_type}" 
+        echo "adding definition"
         case "$file_type" in
-            'py')
+            '-t py')
+                echo chose py
                 prefix='(def|class) ' ;;
-            'lkml')
+            '-t lkml')
                 prefix='(dimension|explore).*? ' ;;
             *)
         esac
 
         pattern="${prefix}${pattern}" 
     fi
-
-    local lines=$(rg --column "$pattern" -g!"*test*" | awk '!/^$/')
+    local lines=$(rg --column "$pattern" $hidden $ignore "$filter" $(echo $file_type) | awk '!/^$/')
 
     if [ "$lines" = "" ]; then
       return 1
@@ -97,14 +118,12 @@ fnd () {
         location=$(echo "$lines" | rg -o '^[^:]+:\d+')
         nvim "$location"
     else
-        file=$(echo "$lines" | fzf --reverse | rg -o '^[^:]+:\d+')
-
-        if [ ! -z "$file" ]
+        files=$(echo "$lines" | fzf -m --reverse --preview 'line=$(echo {} | cut -d":" -f2); bat -r $((line - 20 < 0 ? 1 : line - 20)): -H $line  --color=always $(echo {} | cut -d":" -f1)'| rg -o '^[^:]+:\d+' | xargs)
+        if [ ! -z "$files" ]
         then
-            nvim "$file"
+            nvim $(echo $files)
         fi
     fi
-
 }
 
 #
@@ -114,12 +133,19 @@ jmp () {
     local hidden
     local ignore
     local dir
+    local query
     local target
 
-    if [[ -n "$1" && "${1:0:1}" != "-" ]]
+    if [[ -n "$1" && ("${1:0:1}" != "-" || "$1" == "-") ]]
     then
-        cd "$1"
-        return 0
+        if [[ -d "$1" ]]
+        then
+            cd "$1"
+            return 0
+        else
+            query="$1"
+            shift;
+        fi
     fi
 
     while getopts 'hicd::' opt; do
@@ -131,21 +157,19 @@ jmp () {
             c)
                 dir=$(pwd) ;;
             d)
-                if [[ -n "$dir" ]]
-                then
-                    echo "WARN: -c (current directory) option is set. ignoring directory argument"
-                fi
                 dir="$OPTARG" ;;
             \?)
                 echo "unexpected argument found ${1}"
                 return 1 ;;
             esac
     done
+
+    echo $dir
     if [[ -n "$dir" ]]
     then
-        target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --tiebreak=length)
+        target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --query "$query" --tiebreak=length --preview 'exa -lR {}')
     else
-        target=$(fd . "$HOME" -d 4 $hidden $ignore -t d | fzf --tiebreak=length)
+        target=$(fd . "$HOME" -d 4 $hidden $ignore -t d | fzf --query "$query" --tiebreak=length --preview 'exa -lR {}')
     fi
 
     if [[ -n "$target" ]]
@@ -155,10 +179,10 @@ jmp () {
 }
 
 #
-# Get the most common filetpye in the current directory
+# Get the most common filetpye in the current directory filtering out png
 #
 _get_default_file_type() {
-    echo $(fd . -t f | rg '.*\.(\S+)$' -r '$1' | sort | uniq -c | sort -r | awk 'NR==1{print $2}')
+    echo $(fd . -t f | rg -v '.*png' |rg '.*\.(\S+)$' -r '$1' | sort | uniq -c | sort -r | awk 'NR==1{print $2}')
 }
 
 export FZF_FUNCTIONS_SET=1
