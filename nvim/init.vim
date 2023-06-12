@@ -3,6 +3,7 @@
 "==================================================================================================================================================
 filetype plugin indent on                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
 
+
 set number
 set norelativenumber
 set nobackup
@@ -101,28 +102,26 @@ call plug#end()
 "leader
 
 let mapleader=' '
-" insert mappings
-imap ii <Esc>
+
+" insert mappinigs
 inoremap <silent> <c-u> <esc>viwU<esc>a
 " normal mappings
 nnoremap <silent> <C-s> :source $MYVIMRC<CR>
-nnoremap <C-k> O<ESC>j 
-nnoremap <C-j> o<ESC>k
 nnoremap <C-g> :echo expand('%:p')<CR> 
 
 " visual mappings
-vnoremap ii <ESC> 
 vnoremap <leader>g :GBrowse<CR>
 vnoremap < <gv
 vnoremap > >gv
 
 " leader short cuts
-nnoremap <leader>w :w<CR>
-nnoremap <leader>qa :xa<CR>
-nnoremap <leader>q :q!<CR>
 nnoremap <leader>c :tabc<CR>
 nnoremap <leader>g :GBrowse<CR>
-
+nnoremap <leader>k O<ESC>j 
+nnoremap <leader>j o<ESC>k
+nnoremap <silent> <leader>e :Ex<CR>
+nnoremap <silent> <leader>ev :Vex<CR>
+nnoremap <silent> <leader>es :Sex<CR>
 nnoremap <silent> \\ :noh<CR>
 nnoremap <silent> <C-l> :set relativenumber!<CR>
 
@@ -137,7 +136,7 @@ tnoremap <silent> <leader><ESC> <C-\><C-n>
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc specific mapppings
 
-let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir']
+let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-vimlsp']
 """ Customize colors
 func! s:my_colors_setup() abort
     hi CocFloating guibg=#30313d
@@ -263,14 +262,19 @@ let g:terraform_fmt_on_save=1
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " fzf 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-nnoremap <leader>f :Files<CR>
+nnoremap <silent> <leader>f  :Files<CR>
+nnoremap <leader>F :Files $ALBERT_PROJECTS<CR>
 nnoremap <leader>s :Rg<CR>
+"nnoremap <leader>S :call fzf#vim#grep("rg --column --line-number --no-heading --smart-case '.*' /Users/adamlefevre/Projects/albert/ --".shellescape(""), fzf#vim#with_preview(), 0)<CR>
 nnoremap <leader>b :Buffers<CR>
 nnoremap <leader>h :History:<CR>
 nnoremap <leader>hf :History<CR>
 nnoremap <leader>hs :History/<CR>
 nnoremap <leader>gf :GFiles?<CR>
 
+fun! s:append_selection(lines)
+    call appendbufline(bufnr('%'), 0, a:lines)
+endfunction
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "c++ 
@@ -359,3 +363,27 @@ autocmd FileType python vnoremap C :call GetValue()<cr>
 " Custom netrw settings
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 let g:netrw_preview = 1
+
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+" PSQL helpers
+">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+fun! s:search_psqlh()
+    silent exec "!test -e /tmp/psql_history && rm /tmp/psql_history"
+    exec "vs /tmp/psql_history"
+    silent exec "r ~/.psql_history" 
+    silent exec "%s/\\\\040/ /g"
+    silent exec "%s/134/\/g" 
+    silent exec "%s/\\\\\^A/ /g"
+    normal! gg
+    silent exec "x"
+    call fzf#run(fzf#wrap({'source': "cat /tmp/psql_history | sort -u | tr '[:upper:]' '[:lower:]'", 'sink': function('s:append_selection')}))
+endfun
+
+command! SearchPSQL :call s:search_psqlh()
+command! SQLFormat :%!sqlformat --reindent --keywords upper --identifiers lower -
+
+augroup sql
+    au!
+    au BufRead,BufNewFile *.sql set filetype=sql
+    au BufEnter *.sql nnoremap <silent> <C-f>  :SQLFormat<CR>
+augroup END

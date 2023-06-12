@@ -5,6 +5,7 @@ echo "Sourcing alias module"
 (alias | rg '^gr=' &> /dev/null) && unalias gr
 (alias | rg '^grm=' &> /dev/null) && unalias grm
 
+alias diff='delta -s'
 alias _complete=_bash_comp
 alias _expand=_bash_expand
 alias creds='nvim ~/.aws/credentials'
@@ -52,6 +53,7 @@ alias awsconf='nvim ~/.aws/config'
 alias y='pbcopy'
 alias p=pbpaste
 alias n='nvim'
+alias nv='nvim .'
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
 alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'

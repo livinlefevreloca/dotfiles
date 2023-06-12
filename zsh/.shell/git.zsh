@@ -137,7 +137,14 @@ gpush () {
 #
 # git pull the current branch
 #
-gpull () { git pull origin $(curr_branch) --ff-only } 
+gpull () {
+    if [[ ! -n "$1" ]]
+    then
+        git pull origin $(curr_branch) --ff-only
+        return 0
+    fi
+    git pull origin $(curr_branch) $@
+} 
 
 #
 # git checkout a given branch. If no branch is given, use fzf to select one
