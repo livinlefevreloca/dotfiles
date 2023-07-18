@@ -193,7 +193,7 @@ else
 #end nvim
 
 #Albert
-[[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
+[[ $(whoami) -eq 'adamlefevre' ]] && [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end Albert
 
 
