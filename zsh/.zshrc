@@ -105,6 +105,7 @@ source $ZSH/oh-my-zsh.sh
 #if_not_i tfenv
 #if_not_i tmux
 #if_not_i bat
+#if_not_i socat
 #
 #if [[ `cat temp` != "" ]];
 #then
@@ -144,6 +145,7 @@ fi
 
 if [[ $(env | rg VIMRUNTIME) ]]
 then
+    source ~/.shell/.aliases
     echo "Running from vim skipping modules"
 else
 # fzf
@@ -185,6 +187,10 @@ else
 # notes
 [[ ! "$NOTES_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/notes.zsh" ]] && source ${SHELL_SCRIPTS}/notes.zsh
 #end note
+#
+# nvim
+[[ ! "$NVIM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/notes.zsh" ]] && source ${SHELL_SCRIPTS}/nvim.zsh
+#end nvim
 
 #Albert
 [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"

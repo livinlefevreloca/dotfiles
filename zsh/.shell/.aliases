@@ -43,17 +43,16 @@ alias md='mkdir -p'
 alias rd=rmdir
 
 alias oaf='nvim ~/.shell/.aliases'
-saf='source ~/.shell/.aliases'
+alias saf='source ~/.shell/.aliases'
 alias orc='nvim ~/.zshrc'
 alias src='. ~/.zshrc'
 alias tconf='nvim ~/.tmux.conf'
 alias vconf='nvim ~/.config/nvim/init.vim'
 alias kconf='nvim ~/.kube/config'
 alias awsconf='nvim ~/.aws/config'
+alias pgconf='nvim ~/.psqlrc'
 alias y='pbcopy'
 alias p=pbpaste
-alias n='nvim'
-alias nv='nvim .'
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
 alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'

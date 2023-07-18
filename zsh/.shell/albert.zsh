@@ -107,14 +107,8 @@ function staging_dsn() {
 # Connect to Production Redshift via the redshift_data_api_user using the get-cluster-credentials api
 #
 function redshift-prod-psql(){
-    local db="$1"
+    local db
     local user
-    shift;
-
-    if [[ -z "$db" ]]; then
-        echo "Please provide a database name"
-        return 1
-    fi
 
     while getopts "s" opt; do
         case $opt in
@@ -122,15 +116,21 @@ function redshift-prod-psql(){
             ;;
         esac
     done
+    shift $((OPTIND -1))
+    if [[ -z "$1" ]]; then
+        echo "Please provide a database name"
+        return 1
+    fi
+    db="$1"
     
     if [[ -z "$user" ]]; then
         user="redshift_data_api_user"
     fi
     
-    shift $((OPTIND -1))
+    echo $db
     echo $user
     PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile production | jq '.DbPassword' | tr -d '"' | tr -d '\n') \
-    psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
+        /usr/local/Cellar/libpq/13.2/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
 #

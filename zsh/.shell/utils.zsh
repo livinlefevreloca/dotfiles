@@ -29,7 +29,7 @@ function edt_mod() {
 
 #
 # Command to refresh (source) a give module in an isolated fashion.
-# If no module is given then a list of modules is presented to 
+# If no module is given then a list of modules is presented to
 # the user to select from.
 #
 function src_mod() {
@@ -57,14 +57,14 @@ reset_modules() {
 #
 bookmark () {
     [[ ! -d "${BOOKMARKS_DIR}" ]] && mkdir "${BOOKMARKS_DIR}" && echo "Bookmarks missing. Created ${BOOKMARKS_DIR}"
-    url=${1}
-    title="${2}"
+    local url=${1}
+    local title="${2}"
     if [[ -z "${title}" ]]
     then
-        title=$(curl -s "${url}" | rg -o "<title>.*</title>" | sed -e "s/<title>//" -e "s/<\/title>//" | tr -d '\n' | tr -d '\r' | tr -d ' ' | tr -d '\t')
+        local title=$(curl -s "${url}" | rg -o "<title>.*</title>" | sed -e "s/<title>//" -e "s/<\/title>//" | tr -d '\n' | tr -d '\r' | tr -d ' ' | tr -d '\t')
     fi
-    file="${BOOKMARKS_DIR}/${title}.webloc"
-    xml='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>URL</key>'"<string>"${url}"</string>"'</dict></plist>'
+    local file="${BOOKMARKS_DIR}/bk ${title}.webloc"
+    local xml='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>URL</key>'"<string>"${url}"</string>"'</dict></plist>'
     echo $xml > $file
 }
 
@@ -72,7 +72,19 @@ bookmark () {
 # Open a bookmark directly from the command line.
 #
 bk () {
-    open "$(ls $BOOKMARKS_DIR | fzf | xargs -I {} echo "${BOOKMARKS_DIR}/{}")"
+    local found="$(ls $BOOKMARKS_DIR | fzf | xargs -I {} echo "${BOOKMARKS_DIR}/{}")"
+    if [[ -n "${found}" ]]
+    then
+        open "${found}"
+    fi
+}
+
+rm_bookmark () {
+    local found="$(ls $BOOKMARKS_DIR | fzf | xargs -I {} echo "${BOOKMARKS_DIR}/{}")"
+    if [[ -n "${found}" ]]
+    then
+        rm "${found}"
+    fi
 }
 
 #
@@ -82,4 +94,14 @@ decolorize() {
     sed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
 }
 
+
+#
+# Locally forward a port to a remote host.
+
+forward() {
+    local listen_port="${1}"
+    local remote_host="${2}"
+    local remote_port="${3}"
+    socat tcp-l:${1},fork,reuseaddr tcp:${2}:${3}
+}
 export UTIL_FUNCTIONS_SET=1

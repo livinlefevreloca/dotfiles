@@ -92,6 +92,27 @@ fn podexec() {
     fi
 }
 
+fn podfollow() {
+    local namespace
+    while getopts 'n::' opt; do
+        case "$opt" in
+            n)
+                namespace=( "-n" "$OPTARG" ) ;;
+            \?)
+                echo "unexpected argument found $1"
+                return 1 ;;
+        esac
+    done
+    if [[ -n "$namespace" ]]; then
+        pod=$(kubectl get pods "${namespace[@]}" | cut -d' ' -f1 | fzf)
+    else
+        pod=$(kubectl get pods | cut -d' ' -f1 | fzf)
+    fi
+    if [[ -n "$pod" ]] then
+        kubectl logs -f "$pod"
+    fi
+}
+
 #
 # Connect to a postgres database in a given namespace.
 #  NOTE: The pod must be port-forwarded to the local machine.

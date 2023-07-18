@@ -17,7 +17,7 @@ function notes() {
     while getopts "cd::" opt; do
         case $opt in
             c)
-                file_path=$(ls -d $NOTES_DIR/* | fzf --preview='less {}' --bind shift-up:preview-page-up,shift-down:preview-page-down)
+                file_path=$(ls -d $NOTES_DIR/* | fzf --tac --preview='less {}' --bind shift-up:preview-page-up,shift-down:preview-page-down)
                 if [[ -z "$file_path" ]]; then
                     return 1
                 fi
@@ -34,11 +34,11 @@ function notes() {
     if [ ! -n "$date" ]; then
         date=$(date +%Y-%m-%d)
     fi
-    
+
     if [ ! -n "$file_path" ]; then
         file_path="${NOTES_DIR}/${date}.md"
     fi
-    
+
     if [ ! -f "$file_path" ]; then
         echo "Creating new notes file"
         touch "$file_path"
@@ -49,20 +49,22 @@ function notes() {
             headerline_file=$(echo "$headerline" | cut -d ":" -f 1)
             headerline_num=$(echo "$headerline" | cut -d ":" -f 2)
             header=$(echo "$headerline" | cut -d ":" -f 3)
-            read "?Would you like to carry over the reminder for $(echo $header | sed 's/ @remind//')? [y/n] " response
+            content=$(rg --pcre2 --multiline --multiline-dotall --only-matching --no-line-number "${header}.*?(^##|\Z)" "$headerline_file" | rg -v '^##')
+            cleaned_header=$(echo $header | sed 's/## //' | sed 's/ @remind//')
+            read "?Would you like to carry over the reminder for ${cleaned_header}? [y/n] " response
 
             if [[ $response == 'y' ]]
             then
-                echo "Adding reminder for $header"
+                echo "Adding reminder for $cleaned_header"
                 echo "" >> "$file_path"
                 echo $header >> "$file_path"
                 echo '[continued from]('"${headerline_file}:${headerline_num}"')' >> "$file_path"
+                echo "" >> "$file_path"
+                echo "$content" >> "$file_path"
             else
                 echo "removing reminder for $header"
             fi
             unset response
-            new_header=$(echo "$header" | rg '(.*) @remind' -r '$1')
-            echo "new header: $new_header"
             cat $headerline_file | sed "${headerline_num}s/ @remind//" > /tmp/tmp
             mv /tmp/tmp $headerline_file
         done
@@ -89,7 +91,7 @@ function cont_note() {
         echo "Must provide a header"
         return 1
     fi
-    
+
     while getopts "cd:" opt; do
         case $opt in
             c)
@@ -103,7 +105,7 @@ function cont_note() {
                 ;;
         esac
     done
-    
+
     if [[ ! -n "$date" ]]; then
         from_file_path="${NOTES_DIR}"
     else
@@ -123,7 +125,7 @@ function cont_note() {
     fi
 
     headerline=$(rg -n "#+ .*$header" "$from_file_path" | fzf -0 -1 )
-    
+
     if [[ "$from_file_path" == "$NOTES_DIR" ]]; then
         headerline_file=$(echo "$details" | cut -d ":" -f 1)
         headerline_num=$(echo "$details" | cut -d ":" -f 2)
@@ -132,13 +134,13 @@ function cont_note() {
         headerline_num=$(echo "$details" | cut -d ":" -f 2)
         header=$(echo "$details" | cut -d ":" -f 3-)
     fi
-    
+
     if [[ ! -n "$header" ]]; then
         echo "No results found for: $header"
         return 1
     fi
     local cont_line='[continued from]('"${from_file_path}:${headerline_num}"')'
-    
+
     echo "" >> "$headerline_file"
     echo "${header}\n${cont_line}" >> "$to_file_path"
     echo "Successfuly Added notes Continuation!"
@@ -147,7 +149,12 @@ function cont_note() {
 
 function search_notes() {
     local search_term="$1"
-    nvim $(rg -n "$search_term" "$NOTES_DIR" | fzf)
+    files=$(rg -n "$search_term" "$NOTES_DIR" | fzf)
+    if [[ -n "$files" ]]; then
+        file=$(echo "$files" | cut -d ":" -f 1)
+        line_num=$(echo "$files" | cut -d ":" -f 2)
+        nvim +:"$line_num" "$file"
+    fi
 }
 
 export NOTES_FUNCTIONS_SET=1

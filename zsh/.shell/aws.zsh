@@ -23,12 +23,12 @@ function s3du(){
 change_profile () {
     if [[ ! -n "$1" ]]
     then
-        export AWS_DEFAULT_PROFILE=$(cat ~/.aws/config | rg -o '\[profile (\S+)\]' -r '$1' | fzf)
+        export AWS_PROFILE=$(cat ~/.aws/config | rg -o '\[profile (\S+)\]' -r '$1' | fzf)
     else
-        export AWS_DEFAULT_PROFILE="$1"
+        export AWS_PROFILE="$1"
     fi
 }
 
-AWS_DEFAULT_PROFILE='dev-engineer'
+AWS_PROFILE='dev-engineer'
 export AWS_FUNCTIONS_SET=1
 

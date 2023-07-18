@@ -48,7 +48,7 @@ edit () {
     else
         target=$(echo "$lines" | fzf -q "$query" -m --preview 'bat {} --color=always' | xargs)
     fi
-    
+
     if [[ -n "$target" ]]
     then
         nvim $(echo $target)
@@ -60,33 +60,33 @@ edit () {
 #
 fnd () {
 
-    local filter='-g!**test**'
+    local filter="-g!'**test**'"
     local definition
     local file_type
     local prefix
     local hidden
     local ignore
 
-    local file_type="-t $(_get_default_file_type)"
-    while getopts 'adhi:t:f:' opt; do
+    local file_type="$(_get_default_file_type)"
+    while getopts 'adhint:' opt; do
         case "$opt" in
             a)
-                file_type="-t all" ;;
+                file_type='all' ;;
             d)
                 definition=1 ;;
             h)
                 hidden="--hidden" ;;
-            i) 
+            i)
                 ignore="--no-ignore" ;;
-            f)
-                filter=$OPTARG ;;
+            n)
+                filter='' ;;
             t)
                 if [[ "$file_type" == 'all' ]]
                 then
                     echo "cannot specify file type when searching all files"
                     return 1
                 fi
-                file_type="-t $OPTARG" ;;
+                file_type=$(echo "$OPTARG" | xargs) ;;
             \?)
                 echo "unexpected argument found $1"
                 return 1 ;;
@@ -95,30 +95,44 @@ fnd () {
 
     shift $((OPTIND -1))
     local pattern="$1"
-    echo "file type is ${file_type}" 
 
     if [[ "$definition" == 1 ]] then
-        echo "adding definition"
         case "$file_type" in
-            '-t py')
-                echo chose py
+            'py')
                 prefix='(def|class) ' ;;
-            '-t lkml')
-                prefix='(dimension|explore).*? ' ;;
+            'lkml')
+                prefix='(dimension|explore) ' ;;
+            'rs')
+                prefix='(pub|fn|struct|enum|mod|type|trait|const|static|impl|macro_rules) ' ;;
             *)
         esac
 
-        pattern="${prefix}${pattern}" 
+        pattern="${prefix}${pattern}"
     fi
-    local lines=$(rg --column "$pattern" $hidden $ignore "$filter" $(echo $file_type) | awk '!/^$/')
+
+    echo "$file_type is the file type"
+
+    if (rg --type-list | cut -d':' -f1 | rg "^${file_type}$" > /dev/null)
+    then
+        file_type="-t${file_type}"
+    elif [[ "$file_type" == 'all' ]]
+    then
+        file_type=''
+    else
+        file_type="-g'**.${file_type}'"
+    fi
+
+    echo rg --column "$pattern" $hidden $ignore ${filter//"'"/} ${file_type//"'"/}
+    local lines=$(rg --column "$pattern" $hidden $ignore ${filter//"'"/} ${file_type//"'"/} | awk '!/^$/')
 
     if [ "$lines" = "" ]; then
       return 1
     elif [ $(wc -l <<< "$lines") -eq 1 ]; then
-        location=$(echo "$lines" | rg -o '^[^:]+:\d+')
-        nvim "$location"
+        location=$(echo "$lines" | rg '.*(^[^:]+):(\d+).*' -r '$1' | xargs)
+        line=$(echo "$lines" | rg '.*(^[^:]+):(\d+).*' -r '$2' | xargs)
+        nvim $location +:$line
     else
-        files=$(echo "$lines" | fzf -m --reverse --preview 'line=$(echo {} | cut -d":" -f2); bat -r $((line - 20 < 0 ? 1 : line - 20)): -H $line  --color=always $(echo {} | cut -d":" -f1)'| rg -o '^[^:]+:\d+' | xargs)
+        files=$(echo "$lines" | fzf -m --reverse --preview 'line=$(echo {} | cut -d":" -f2); bat -r $((line - 20 < 0 ? 1 : line - 20)): -H $line  --color=always $(echo {} | cut -d":" -f1)'| rg '.*(^[^:]+):(\d+).*' -r '$1 +:$2' | xargs)
         if [ ! -z "$files" ]
         then
             nvim $(echo $files)
@@ -164,7 +178,6 @@ jmp () {
             esac
     done
 
-    echo $dir
     if [[ -n "$dir" ]]
     then
         target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --query "$query" --tiebreak=length --preview 'exa -lR {}')

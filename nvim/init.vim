@@ -1,17 +1,14 @@
 "==================================================================================================================================================
 " General setting for ideak nvim usage
-"==================================================================================================================================================
-filetype plugin indent on                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-
 
 set number
-set norelativenumber
+
 set nobackup
 set nowritebackup
 set nowrap
 set laststatus=2
-set completeopt=preview     
-set tabstop=4      
+set completeopt=preview
+set tabstop=4
 set shiftwidth=4
 set expandtab
 set cursorline
@@ -21,6 +18,7 @@ set clipboard^=unnamed
 "set mouse=a
 set ffs=unix
 " auto commands
+
 autocmd!
 autocmd filetype {yaml,tsx,sh} set tabstop=2 | set shiftwidth=2
 autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
@@ -35,25 +33,27 @@ autocmd FileType go vnoremap <silent> <C-u> :s/\/\/ // <CR>:noh<CR>
 command Vconf :e $MYVIMRC
 
 
+" =================================================================================================================================================
+" Kill trailing white space
+" =================================================================================================================================================
+
+function! TrimWhitespace()
+    let l:save = winsaveview()
+    keeppatterns %s/\s\+$//e
+    call winrestview(l:save)
+endfunction
+
+augroup TrimWhitespace
+    autocmd!
+    autocmd BufWritePre * :call TrimWhitespace()
+augroup END
+
+
 
 " Instantiate Plugins
 "==================================================================================================================================================
 " Plugins installed for use with nvim
 "==================================================================================================================================================
-let g:plugs_disabled = ['luk400/vim-jukit']
-function! Plug_disable()
-  for name in g:plugs_disabled
-    if has_key(g:plugs, name)
-      call remove(g:plugs, name)
-    endif
-
-    let idx = index(g:plugs_order, name)
-    if idx > -1
-      call remove(g:plugs_order, idx)
-    endif
-  endfor
-endfunction
-
 call plug#begin('~/.config/nvim/plugged')
 "Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -79,8 +79,6 @@ Plug 'styled-components/vim-styled-components', { 'branch': 'main' }
 " github plugins
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rhubarb'
-" Open file at line
-Plug 'bogado/file-line'
 " for smooth scrolling
 Plug 'psliwka/vim-smoothie'
 " for diffview
@@ -90,8 +88,6 @@ Plug 'kyazdani42/nvim-web-devicons'
 " for github copilot
 Plug 'github/copilot.vim'
 " jupyter notebooks in vim
-Plug 'luk400/vim-jukit'
-call Plug_disable()
 call plug#end()
 "
 
@@ -101,13 +97,15 @@ call plug#end()
 "==================================================================================================================================================
 "leader
 
-let mapleader=' '
+let mapleader=','
 
 " insert mappinigs
 inoremap <silent> <c-u> <esc>viwU<esc>a
 " normal mappings
-nnoremap <silent> <C-s> :source $MYVIMRC<CR>
-nnoremap <C-g> :echo expand('%:p')<CR> 
+"nnoremap <silent> <C-s> :source $MYVIMRC<CR>
+nnoremap <C-g> :echo expand('%:p')<CR>
+nnoremap <silent> \\ :noh<CR>
+nnoremap <silent> <C-l> :set relativenumber!<CR>
 
 " visual mappings
 vnoremap <leader>g :GBrowse<CR>
@@ -117,13 +115,11 @@ vnoremap > >gv
 " leader short cuts
 nnoremap <leader>c :tabc<CR>
 nnoremap <leader>g :GBrowse<CR>
-nnoremap <leader>k O<ESC>j 
+nnoremap <leader>k O<ESC>j
 nnoremap <leader>j o<ESC>k
 nnoremap <silent> <leader>e :Ex<CR>
 nnoremap <silent> <leader>ev :Vex<CR>
 nnoremap <silent> <leader>es :Sex<CR>
-nnoremap <silent> \\ :noh<CR>
-nnoremap <silent> <C-l> :set relativenumber!<CR>
 
 tnoremap <silent> <leader><ESC> <C-\><C-n>
 
@@ -132,11 +128,11 @@ tnoremap <silent> <leader><ESC> <C-\><C-n>
 "==================================================================================================================================================
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" Coc-vim 
+" Coc-vim
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc specific mapppings
 
-let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-vimlsp']
+let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-vimlsp', 'coc-sql']
 """ Customize colors
 func! s:my_colors_setup() abort
     hi CocFloating guibg=#30313d
@@ -255,12 +251,12 @@ endif
 command! -nargs=0 Format :call CocActionAsync('format')
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" terraform 
+" terraform
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 let g:terraform_fmt_on_save=1
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" fzf 
+" fzf
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 nnoremap <silent> <leader>f  :Files<CR>
 nnoremap <leader>F :Files $ALBERT_PROJECTS<CR>
@@ -277,7 +273,7 @@ fun! s:append_selection(lines)
 endfunction
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-"c++ 
+"c++
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 let g:cpp_class_scope_highlight = 1
 let g:cpp_member_variable_highlight = 1
@@ -287,7 +283,7 @@ let g:cpp_class_decl_highlight = 1
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " lightline
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-let g:lightline = { 
+let g:lightline = {
             \ 'colorscheme': 'lightline_solarized',
             \ 'active': {
             \   'left': [ [ 'mode', 'paste' ],
@@ -329,35 +325,17 @@ let g:syntastic_check_on_wq = 0
 set completeopt-=preview
 
 " (Optional)Hide Info(Preview) window after completions
-autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
-autocmd InsertLeave * if pumvisible() == 0|pclose|endif
+"autocmd CursorMovedI * if pumvisible() == 0|pclose|endif
+"autocmd InsertLeave * if pumvisible() == 0|pclose|endif
 
 " (Optional) Enable terraform plan to be include in filter
 let g:syntastic_terraform_tffilter_plan = 1
 
 " (Optional) Default: 0, enable(1)/disable(0) plugin's keymapping
-let g:terraform_completion_keys = 1
+let g:terraform_completion_keys = 0
 
 " (Optional) Default: 1, enable(1)/disable(0) terraform module registry completion
 let g:terraform_registry_module_completion = 0
-
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" Jukit
-">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-" remap send to kernel
-autocmd FileType python nnoremap <leader>z :call jukit#send#section(0)<cr>
-"   - Jump to the next cell below
-autocmd FileType python nnoremap <leader>J :call jukit#cells#jump_to_next_cell()<cr>
-"   - Jump to the previous cell above
-autocmd FileType python nnoremap <leader>K :call jukit#cells#jump_to_previous_cell()<cr>
-
-fun! GetValue()
-    let visual_selection = jukit#util#get_visual_selection()
-    let cmd = visual_selection
-    call jukit#send#send_to_split(cmd)
-endfun
-
-autocmd FileType python vnoremap C :call GetValue()<cr>
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Custom netrw settings
@@ -368,11 +346,11 @@ let g:netrw_preview = 1
 " PSQL helpers
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 fun! s:search_psqlh()
-    silent exec "!test -e /tmp/psql_history && rm /tmp/psql_history"
+    silent exec "!test -e /tmp/psql_history && rm /tmp/psql_history &> /dev/null"
     exec "vs /tmp/psql_history"
-    silent exec "r ~/.psql_history" 
+    silent exec "r ~/.psql_history"
     silent exec "%s/\\\\040/ /g"
-    silent exec "%s/134/\/g" 
+    silent exec "%s/134/\/g"
     silent exec "%s/\\\\\^A/ /g"
     normal! gg
     silent exec "x"

@@ -6,6 +6,10 @@
   "python.linting.pylintEnabled": true,
   "pyright.completion.snippetSupport": false,
   "rust-analyzer.checkOnSave.command": "clippy",
+  "diagnostic.checkCurrentLine": true,
+  "sql.database": "postgresql",
+  "sql.lintOnOpen": false,
+  "sql.lintOnChange": false,
   "clangd.compilationDatabaseCandidates": [
     "${workspaceFolder}"
   ],
