@@ -24,13 +24,20 @@ autocmd filetype {yaml,tsx,sh} set tabstop=2 | set shiftwidth=2
 autocmd BufEnter *.{js,jsx,ts,tsx} :syntax sync fromstart
 autocmd BufLeave *.{js,jsx,ts,tsx} :syntax sync clear
 autocmd FileType python let b:coc_root_patterns = ['.git']
-autocmd FileType python set colorcolumn=80
+autocmd FileType python set colorcolumn=95
 autocmd FileType python vnoremap <C-c> :normal I# <CR>
 autocmd FileType python vnoremap <silent> <C-u> :s/# // <CR>:noh<CR>
 autocmd FileType go vnoremap <C-c> :normal I// <CR>
 autocmd FileType go vnoremap <silent> <C-u> :s/\/\/ // <CR>:noh<CR>
 
 command Vconf :e $MYVIMRC
+
+" =================================================================================================================================================
+" Window Commands
+" =================================================================================================================================================
+
+nnoremap <silent> vgF <C-W>vgF
+nnoremap <silent> vgf <C-W>vgf
 
 
 " =================================================================================================================================================

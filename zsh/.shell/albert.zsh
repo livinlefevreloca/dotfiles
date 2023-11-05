@@ -67,10 +67,10 @@ function _select_cluster() {
 # Connect to a given staging database instance via psql. Pull the credentials from AWS Secrets Manager
 #
 function staging_psql() {
-    
+
     if [[ -z "$1" ]]; then
         cluster=$(_select_cluster)
-    else 
+    else
         export cluster="$1"
         shift
     fi
@@ -90,7 +90,7 @@ function staging_psql() {
 function staging_dsn() {
     if [[ -z "$1" ]]; then
         cluster=$(_select_cluster)
-    else 
+    else
         export cluster="$1"
     fi
 
@@ -122,15 +122,15 @@ function redshift-prod-psql(){
         return 1
     fi
     db="$1"
-    
+
     if [[ -z "$user" ]]; then
         user="redshift_data_api_user"
     fi
-    
+
     echo $db
     echo $user
     PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile production | jq '.DbPassword' | tr -d '"' | tr -d '\n') \
-        /usr/local/Cellar/libpq/13.2/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
+        /usr/local/Cellar/postgresql@11/11.21_1/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
 #

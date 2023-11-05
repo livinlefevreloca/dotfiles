@@ -25,7 +25,7 @@ ga () {
         fi | less -r' \
         | xargs -I {} echo {} | cut -d" " -f2)
 
-    
+
     if [[ ! -n "$files" ]]
     then
         return 0
@@ -57,7 +57,7 @@ function gr() {
         git restore ${staged} $@
         return 0
     fi
-    
+
     if [[ ! -z "$staged" ]]
     then
         git restore --staged $(git status -s | rg -v '^ ' | fzf -m --preview 'bat --color=always $(echo {} | awk '"'"'$0 ~ /[\?AMD]/ {print $2}'"'"') | less -r' | xargs -I {} echo {} | cut -d" " -f2)
@@ -144,22 +144,48 @@ gpull () {
         return 0
     fi
     git pull origin $(curr_branch) $@
-} 
+}
 
 #
 # git checkout a given branch. If no branch is given, use fzf to select one
 #
 gcob() {
-    branch="$1"
+    local branch="$1"
 
     if [[ -z "$branch" ]];
     then
-        git checkout $(git branch | fzf);
+        branch=$(_branch)
+        if [[ -z "$branch" ]]
+        then
+            return 0
+        fi
+        git checkout "$branch"
     else
         git checkout "$branch"
     fi
     gpull
 }
+
+delbranch() {
+    branches=$(_branch)
+    if [[ -z "$branches" ]]
+    then
+        return 0
+    fi
+    echo "deleting branches: $branches"
+    git branch -D $(echo "$branches")
+}
+
+
+#
+# select a branch
+#
+
+_branch() {
+    local preview_command='echo $(git rev-list --left-right --count master...$(echo {} | tr -d " ")  | tr -s " " | awk '"'"'{print "Behind branch master by: "$1" commits <--> Ahead of branch master by "$2" commits"}'"'"') && printf "\n" && git diff --color=always master $(echo {} | tr -d " ") --stat | tr -s " " | less -r'
+    echo $(git branch | fzf -m --preview $preview_command)
+}
+
 
 #
 # Copy the name of current branch to clipboard

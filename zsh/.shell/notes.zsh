@@ -60,7 +60,7 @@ function notes() {
                 echo $header >> "$file_path"
                 echo '[continued from]('"${headerline_file}:${headerline_num}"')' >> "$file_path"
                 echo "" >> "$file_path"
-                echo "$content" >> "$file_path"
+                echo "$content" | rg -v '^\[.*' >> "$file_path"
             else
                 echo "removing reminder for $header"
             fi

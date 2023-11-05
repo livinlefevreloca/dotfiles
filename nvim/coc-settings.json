@@ -5,6 +5,7 @@
   "python.analysis.autoImportCompletions": false,
   "python.linting.pylintEnabled": true,
   "pyright.completion.snippetSupport": false,
+  "python.linting.ruffEnabled": true,
   "rust-analyzer.checkOnSave.command": "clippy",
   "diagnostic.checkCurrentLine": true,
   "sql.database": "postgresql",
