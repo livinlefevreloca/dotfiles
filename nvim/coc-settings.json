@@ -6,25 +6,37 @@
   "python.linting.pylintEnabled": true,
   "pyright.completion.snippetSupport": false,
   "python.linting.ruffEnabled": true,
-  "rust-analyzer.checkOnSave.command": "clippy",
+  "rust-analyzer.inlayHints.chainingHints.enable": true,
+  "rust-analyzer.inlayHints.bindingModeHints.enable": true,
+  "rust-analyzer.inlayHints.parameterHints.enable": true,
+  "rust-analyzer.inlayHints.typeHints.enable": true,
   "diagnostic.checkCurrentLine": true,
   "sql.database": "postgresql",
   "sql.lintOnOpen": false,
   "sql.lintOnChange": false,
+  "zig.enabled": true,
+  "zig.startUpMessage": true,
+  "zig.path": "/Users/adam/.local/bin/zls",
+  "zig.debugLog": false,
   "clangd.compilationDatabaseCandidates": [
     "${workspaceFolder}"
   ],
   "elixir.pathToElixirLS": "~/.elixir-ls/release/language_server.sh",
   "languageserver": {
-      "terraform": {
-            "command": "terraform-ls",
-            "args": ["serve"],
-            "filetypes": [
-                "terraform",
-                "tf"
-            ],
-            "initializationOptions": {},
-            "settings": {}
-        }
+    "terraform": {
+      "command": "terraform-ls",
+      "args": ["serve"],
+      "filetypes": [
+          "terraform",
+          "tf"
+      ],
+      "initializationOptions": {},
+      "settings": {}
+    },
+    "ocaml-lsp": {
+      "command": "opam",
+      "args": ["config", "exec", "--", "ocamllsp"],
+      "filetypes": ["ocaml", "reason"]
+    }
   }
 }

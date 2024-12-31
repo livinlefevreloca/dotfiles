@@ -21,34 +21,35 @@ function _select_mod() {
 # Command to open a give module in nvim. If no module is given
 # then a list of modules is presented to the user to select from.
 #
-function edt_mod() {
-    local module_dir="$MODULES_DIR"
-    local module=$(_select_mod $@)
-    nvim "${module_dir}/${module}"
+edt_mod () {
+	local module_dir="$MODULES_DIR"
+	local module=$(_select_mod $@)
+	nvim "${module_dir}/${module}"
 }
+
 
 #
 # Command to refresh (source) a give module in an isolated fashion.
 # If no module is given then a list of modules is presented to
 # the user to select from.
 #
-function src_mod() {
-    local module_dir="$MODULES_DIR"
-    local module=$(_select_mod $@)
-    source "${module_dir}/${module}"
+src_mod () {
+	local module_dir="$MODULES_DIR"
+	local module=$(_select_mod $@)
+	source "${module_dir}/${module}"
 }
 
 #
 # Reset the state of all modules to unset.
 #
-reset_modules() {
-    unset FZF_FUNCTIONS_SET
-    unset GIT_FUNCTIONS_SET
-    unset PYENV_FUNCTIONS_SET
-    unset AWS_FUNCTIONS_SET
-    unset TERRAFORM_FUNCTIONS_SET
-    unset UTIL_FUNCTIONS_SET
-    unset ALBERT_FUNCTIONS_SET
+reset_modules () {
+	unset FZF_FUNCTIONS_SET
+	unset GIT_FUNCTIONS_SET
+	unset PYENV_FUNCTIONS_SET
+	unset AWS_FUNCTIONS_SET
+	unset TERRAFORM_FUNCTIONS_SET
+	unset UTIL_FUNCTIONS_SET
+	unset ALBERT_FUNCTIONS_SET
 }
 
 #
@@ -56,16 +57,16 @@ reset_modules() {
 # This allows Spotlight to index it.
 #
 bookmark () {
-    [[ ! -d "${BOOKMARKS_DIR}" ]] && mkdir "${BOOKMARKS_DIR}" && echo "Bookmarks missing. Created ${BOOKMARKS_DIR}"
-    local url=${1}
-    local title="${2}"
-    if [[ -z "${title}" ]]
-    then
-        local title=$(curl -s "${url}" | rg -o "<title>.*</title>" | sed -e "s/<title>//" -e "s/<\/title>//" | tr -d '\n' | tr -d '\r' | tr -d ' ' | tr -d '\t')
-    fi
-    local file="${BOOKMARKS_DIR}/bk ${title}.webloc"
-    local xml='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>URL</key>'"<string>"${url}"</string>"'</dict></plist>'
-    echo $xml > $file
+	[[ ! -d "${BOOKMARKS_DIR}" ]] && mkdir "${BOOKMARKS_DIR}" && echo "Bookmarks missing. Created ${BOOKMARKS_DIR}"
+	local url=${1}
+	local title="${2}"
+	if [[ -z "${title}" ]]
+	then
+		local title=$(curl -s "${url}" | rg -o "<title>.*</title>" | sed -e "s/<title>//" -e "s/<\/title>//" | tr -d '\n' | tr -d '\r' | tr -d ' ' | tr -d '\t')
+	fi
+	local file="${BOOKMARKS_DIR}/bk ${title}.webloc"
+	local xml='<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>URL</key>'"<string>"${url}"</string>"'</dict></plist>'
+	echo $xml > $file
 }
 
 #
@@ -80,11 +81,11 @@ bk () {
 }
 
 rm_bookmark () {
-    local found="$(ls $BOOKMARKS_DIR | fzf | xargs -I {} echo "${BOOKMARKS_DIR}/{}")"
-    if [[ -n "${found}" ]]
-    then
-        rm "${found}"
-    fi
+	local found="$(ls $BOOKMARKS_DIR | fzf | xargs -I {} echo "${BOOKMARKS_DIR}/{}")"
+	if [[ -n "${found}" ]]
+	then
+		rm "${found}"
+	fi
 }
 
 #
@@ -97,11 +98,33 @@ decolorize() {
 
 #
 # Locally forward a port to a remote host.
-
-forward() {
-    local listen_port="${1}"
-    local remote_host="${2}"
-    local remote_port="${3}"
-    socat tcp-l:${1},fork,reuseaddr tcp:${2}:${3}
+forward () {
+	local listen_port="${1}"
+	local remote_host="${2}"
+	local remote_port="${3}"
+	socat tcp-l:${1},fork,reuseaddr tcp:${2}:${3}
 }
+
+
+d () {
+	if [[ -n $1 ]]
+	then
+		dirs "$@"
+	else
+		dirs -v | head -n 10
+	fi
+}
+
+decolorize () {
+	gsed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
+}
+
+diff () {
+	command diff --color "$@"
+}
+
+mkcd () {
+	mkdir -p $@ && cd ${@:$#}
+}
+
 export UTIL_FUNCTIONS_SET=1

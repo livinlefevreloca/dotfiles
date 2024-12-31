@@ -6,18 +6,17 @@ eval "$(pyenv virtualenv-init -)"
 
 # activate a virtualenv and install required packages for vim in it if they are not already installed
 activate () {
-    pyenv activate "$1" && \
-    fix && \
-    export VENV="$1"
-    if ! pip3 freeze | grep "neovim" || ! pip3 freeze | grep "jedi" || ! pip3 freeze | grep "flake8" || ! pip3 freeze | grep "pylint" || ! pip3 freeze | grep "black" 
-    then
-        pip3 install neovim jedi pylint flake8 black
-    fi
-    VENV="$PYENV_VERSION"
+	pyenv activate "$1" && . ~/bin/fix.sh && export VENV="$1"
+	if ! pip freeze | rg --multiline --multiline-dotall '.*\bblack\b.*\bflake8\b.*\bjedi\b.*\bneovim\b.*\bpylint\b.*\bruff\b.*' > /dev/null
+	then
+		pip3 install neovim jedi pylint flake8 black ruff
+	fi
+	VENV="$1"
 }
-reset () {
-    pyenv deactivate
-    export VENV=?
+
+deact () {
+	pyenv deactivate
+	export VENV=?
 }
 
 export PATH="/Users/adamlefevre/.pyenv/shims:${PATH}"

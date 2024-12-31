@@ -13,8 +13,8 @@ alias distro='cat /etc/*-release'
 alias fix='. ~/bin/fix.sh'
 alias gb='git branch'
 alias gbD='git branch -D'
-alias gc='git commit -m'
-alias gca='git commit -a -m'
+alias gc='git commit'
+alias gca='git commit -a'
 alias gcf='git config --list'
 alias gcl='git clone'
 alias gcp='git cherry-pick'
@@ -38,7 +38,6 @@ alias k=kubectl
 alias ks='kubectl ns'
 alias kx='kubectl ctx'
 
-alias ls=exa
 alias md='mkdir -p'
 alias rd=rmdir
 
@@ -49,16 +48,16 @@ alias src='. ~/.zshrc'
 alias tconf='nvim ~/.tmux.conf'
 alias vconf='nvim ~/.config/nvim/init.vim'
 alias kconf='nvim ~/.kube/config'
+alias sshconf='nvim ~/.ssh/config'
 alias awsconf='nvim ~/.aws/config'
 alias pgconf='nvim ~/.psqlrc'
 alias y='pbcopy'
 alias p=pbpaste
+alias sed=gsed
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
 alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'
 alias dm=lazydocker
 alias tf=terraform
-alias al='cd $ALBERT_PROJECTS'
-alias pr='cd ~/Projects/personal'
 alias mydocker='docker build -t mydocker . && docker run --cap-add="SYS_ADMIN" mydocker'
 alias saf='source ~/.shell/.aliases'

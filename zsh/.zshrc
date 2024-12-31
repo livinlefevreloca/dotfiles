@@ -1,6 +1,8 @@
-export DOTFILES_DIR=''
+export DOTFILES_DIR='/Users/adam/Projects/personal/dotfiles'
 # If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/opt/libpq/bin:$PATH
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+export GHCR_TOKEN=$(cat ~/.ghcr_token)
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
@@ -10,6 +12,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="xiong-chiamiov-plus-custom"
+# ZSH_THEME="robbyrussell"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -79,45 +82,47 @@ source $ZSH/oh-my-zsh.sh
 
 
 #install required cli tools (please install brew first)
-#touch temp
-#if_not_i () {
-#    if ! which $1;
-#    then
-#        echo $1 >> temp
-#    fi
-#}
+# touch temp
+# if_not_i () {
+#     if ! which $1;
+#     then
+#         echo $1 >> temp
+#     fi
+# }
 #
-#if_not_i ctags
-#if_not_i exa
-#if_not_i fd
-#if_not_i fzf
-#if_not_i git
-#if_not_i jq
-#if_not_i htop
-#if_not_i hiredis
-#if_not_i neovim
-#if_not_i node
-#if_not_i nmap
-#if_not_i pyenv
-#if_not_i pyenv-virtualenv
-#if_not_i ripgrep
-#if_not_i shellcheck
-#if_not_i tfenv
-#if_not_i tmux
-#if_not_i bat
-#if_not_i socat
+# if_not_i ctags
+# if_not_i exa
+# if_not_i fd
+# if_not_i fzf
+# if_not_i git
+# if_not_i jq
+# if_not_i htop
+# if_not_i neovim
+# if_not_i node
+# if_not_i pyenv
+# if_not_i pyenv-virtualenv
+# if_not_i ripgrep
+# if_not_i shellcheck
+# if_not_i tfenv
+# if_not_i tmux
+# if_not_i bat
+# if_not_i socat
+# if_not_i git-delta
+# if_not_i ccls
 #
-#if [[ `cat temp` != "" ]];
-#then
-#    brew install `cat temp | xargs`
-#fi
-#rm temp
 #
+#
+# if [[ `cat temp` != "" ]];
+# then
+#     brew install `cat temp | xargs`
+# fi
+# rm temp
+
 #if ! which cargo;
 #then
 #    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 #fi
-#
+
 #if ! which go;
 #then
 #    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
@@ -137,6 +142,12 @@ if [[ -n $SSH_CONNECTION ]]; then
 else
   export EDITOR='nvim'
 fi
+
+# Refresh shell scripts. We need to remove the existing symlinks to pick up new changes
+rm -rf "${SHELL_SCRIPTS}"
+mkdir -p "${SHELL_SCRIPTS}"
+ln -s ${DOTFILES_DIR}/zsh/.shell/* ${SHELL_SCRIPTS}
+ln -s ${DOTFILES_DIR}/zsh/.shell/.aliases ${SHELL_SCRIPTS}/.aliases
 
 if [[ ! -z "${TMUX+x}" ]]
 then
@@ -192,15 +203,34 @@ else
 [[ ! "$NVIM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/notes.zsh" ]] && source ${SHELL_SCRIPTS}/nvim.zsh
 #end nvim
 
+# LLM
+[[ ! "$LLM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/llm.zsh" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
+# end LLM
+
 #Albert
 [[ $(whoami) -eq 'adamlefevre' ]] && [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end Albert
+
 
 
 fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
+# export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
 
 [ -f "/Users/adamlefevre/.ghcup/env" ] && source "/Users/adamlefevre/.ghcup/env" # ghcup-env
+
+source ~/.private.env
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+clear
+
+
+# BEGIN opam configuration
+# This is useful if you're using opam as it adds:
+#   - the correct directories to the PATH
+#   - auto-completion for the opam binary
+# This section can be safely removed at any time if needed.
+[[ ! -r '/Users/adam/.opam/opam-init/init.zsh' ]] || source '/Users/adam/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
+# END opam configuration

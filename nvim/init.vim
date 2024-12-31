@@ -2,7 +2,7 @@
 " General setting for ideak nvim usage
 
 set number
-
+set noswapfile
 set nobackup
 set nowritebackup
 set nowrap
@@ -114,6 +114,9 @@ nnoremap <C-g> :echo expand('%:p')<CR>
 nnoremap <silent> \\ :noh<CR>
 nnoremap <silent> <C-l> :set relativenumber!<CR>
 
+nnoremap <silent> <C-k> :m .-2<CR>
+nnoremap <silent> <C-j> :m .+1<CR>
+
 " visual mappings
 vnoremap <leader>g :GBrowse<CR>
 vnoremap < <gv
@@ -125,8 +128,8 @@ nnoremap <leader>g :GBrowse<CR>
 nnoremap <leader>k O<ESC>j
 nnoremap <leader>j o<ESC>k
 nnoremap <silent> <leader>e :Ex<CR>
-nnoremap <silent> <leader>ev :Vex<CR>
-nnoremap <silent> <leader>es :Sex<CR>
+nnoremap <silent> <leader>ve :Vex<CR>
+nnoremap <silent> <leader>se :Sex<CR>
 
 tnoremap <silent> <leader><ESC> <C-\><C-n>
 
@@ -139,7 +142,7 @@ tnoremap <silent> <leader><ESC> <C-\><C-n>
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " Coc specific mapppings
 
-let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-vimlsp', 'coc-sql']
+let g:coc_global_extensions = ['coc-jedi', 'coc-pyright', 'coc-rust-analyzer', 'coc-tslint-plugin', 'coc-tsserver', 'coc-emmet', 'coc-css', 'coc-html', 'coc-json', 'coc-yank', 'coc-prettier', 'coc-lua', 'coc-go', 'coc-elixir', 'coc-vimlsp', 'coc-sql', 'coc-zig']
 """ Customize colors
 func! s:my_colors_setup() abort
     hi CocFloating guibg=#30313d
@@ -257,6 +260,11 @@ endif
 " Add `:Format` command to format current buffer.
 command! -nargs=0 Format :call CocActionAsync('format')
 
+
+" Prevent vim-go from removing imports
+let g:go_fmt_command = "gofmt"
+
+
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 " terraform
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -267,6 +275,7 @@ let g:terraform_fmt_on_save=1
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 nnoremap <silent> <leader>f  :Files<CR>
 nnoremap <leader>F :Files $ALBERT_PROJECTS<CR>
+nnoremap <leader>d :Files %:h<CR>
 nnoremap <leader>s :Rg<CR>
 "nnoremap <leader>S :call fzf#vim#grep("rg --column --line-number --no-heading --smart-case '.*' /Users/adamlefevre/Projects/albert/ --".shellescape(""), fzf#vim#with_preview(), 0)<CR>
 nnoremap <leader>b :Buffers<CR>
