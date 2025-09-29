@@ -5,7 +5,6 @@ echo "Sourcing alias module"
 (alias | rg '^gr=' &> /dev/null) && unalias gr
 (alias | rg '^grm=' &> /dev/null) && unalias grm
 
-alias diff='delta -s'
 alias _complete=_bash_comp
 alias _expand=_bash_expand
 alias creds='nvim ~/.aws/credentials'
@@ -30,7 +29,6 @@ alias gs='git status'
 alias gco='git checkout'
 
 alias history=omz_history
-alias j=jobs
 
 alias iex='iex --erl "-kernel shell_history enabled"'
 
@@ -47,13 +45,13 @@ alias orc='nvim ~/.zshrc'
 alias src='. ~/.zshrc'
 alias tconf='nvim ~/.tmux.conf'
 alias vconf='nvim ~/.config/nvim/init.vim'
+alias lconf='lvim ~/Projects/Config/dotfiles/lazyvim/init.lua +:cd ~/Projects/Config/dotfiles/lazyvim/'
 alias kconf='nvim ~/.kube/config'
 alias sshconf='nvim ~/.ssh/config'
 alias awsconf='nvim ~/.aws/config'
 alias pgconf='nvim ~/.psqlrc'
 alias y='pbcopy'
 alias p=pbpaste
-alias sed=gsed
 
 alias small='. ~/.oh-my-zsh/themes/robbyrussell.zsh-theme'
 alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'
@@ -61,3 +59,4 @@ alias dm=lazydocker
 alias tf=terraform
 alias mydocker='docker build -t mydocker . && docker run --cap-add="SYS_ADMIN" mydocker'
 alias saf='source ~/.shell/.aliases'
+alias lvim='NVIM_APPNAME=lazyvim nvim'

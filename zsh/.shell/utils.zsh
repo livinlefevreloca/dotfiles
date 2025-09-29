@@ -106,7 +106,7 @@ forward () {
 }
 
 
-d () {
+d() {
 	if [[ -n $1 ]]
 	then
 		dirs "$@"
@@ -115,12 +115,35 @@ d () {
 	fi
 }
 
-decolorize () {
-	gsed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
+j() {
+    tasksfile=/tmp/$(uuidgen)
+    pidfile=/tmp/$(uuidgen)
+    jobs -p > $tasksfile
+
+
+    while read -r line
+    do
+        num=$(echo $line | cut -d' ' -f1)
+        pid=$(echo $line | cut -d' ' -f4)
+        command=$(ps -o pid,command -ax | rg -v 'rg' | rg $pid | cut -d' ' -f2-)
+        echo "$num $pid $command" >> $pidfile
+    done < $tasksfile
+
+    num=$(cat $pidfile | fzf | cut -d' ' -f1 | rg -o '\d+')
+
+    if [[ -z $num ]]
+    then
+        return
+    fi
+
+    rm $tasksfile
+    rm $pidfile
+
+    fg %$num
 }
 
-diff () {
-	command diff --color "$@"
+decolorize () {
+	gsed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
 }
 
 mkcd () {

@@ -40,7 +40,7 @@ codegen () {
 	then
 		albert dev telepresence-connect
 	fi
-	albert dev runlocal -s "$SERVICE" -v "${ALBERT_PROJECTS}looker":/looker,"${ALBERT_PROJECTS}albert-dbt-analytics-transforms":/albert-dbt-analytics-transforms "$PULL" "$COMMON" -e DBT_REPO_PATH='/albert-dbt-analytics-transforms' -e LOOKER_REPO_PATH='/looker' --no-pull -- python manage.py generate_replication_code "$APP_SERVICE" "$CONFIG"
+	albert dev runlocal -s "$SERVICE" -v "${ALBERT_PROJECTS}looker":/looker,"${ALBERT_PROJECTS}albert-dbt-analytics-transforms":/albert-dbt-analytics-transforms "$PULL" "$COMMON" -e DBT_REPO_PATH='/albert-dbt-analytics-transforms' -e LOOKER_REPO_PATH='/looker' -- python manage.py generate_replication_code "$APP_SERVICE" "$CONFIG"
 }
 
 #
@@ -63,6 +63,18 @@ staging_psql () {
 		shift
 	fi
 	export db=$(echo "$cluster" | cut -d'-' -f2)
+
+    if [[ $db == 'main16' ]]
+    then
+        db='main'
+    elif [[ $db == 'investing16' ]]
+    then
+        db='investing'
+    elif [[ $db == 'transactionsmap16' ]]
+    then
+        db='transactionsmap'
+    fi
+
 	export AWS_PROFILE=staging-devops
 	username=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_username" --profile staging-devops | jq -r ".SecretString")
 	password=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_password" --profile staging-devops | jq -r ".SecretString")
@@ -81,11 +93,53 @@ staging_dsn () {
 		export cluster="$1"
 	fi
 	export db=$(echo "$cluster" | cut -d'-' -f2)
+
+    if [[ $db == 'main16' ]]
+    then
+        db='main'
+    elif [[ $db == 'investing16' ]]
+    then
+        db='investing'
+    elif [[ $db == 'transactionsmap16' ]]
+    then
+        db='transactionsmap'
+    fi
+
 	export AWS_PROFILE=staging-devops
 	username=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_username" --profile staging-devops | jq -r ".SecretString")
 	password=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_password" --profile staging-devops | jq -r ".SecretString")
 	host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile staging-devops | jq -r '.DBClusters[0].Endpoint')
 	echo "postgres://${username}:${password}@${host}:5432/${db}"
+}
+
+
+#
+# Connect to a given testex database instance via psql. Pull the credentials from AWS Secrets Manager
+#
+testex_psql () {
+        if [[ -z "$1" ]]
+        then
+                cluster=$(_select_cluster)
+        else
+                export cluster="$1"
+                shift
+        fi
+        export db=$(echo "$cluster" | cut -d'-' -f2)
+        if [[ $db == 'main16' ]]
+        then
+                db='main'
+        elif [[ $db == 'investing16' ]]
+        then
+                db='investing'
+        elif [[ $db == 'transactionsmap16' ]]
+        then
+                db='transactionsmap'
+        fi
+        export AWS_PROFILE=testex-devops
+        username=$(aws secretsmanager get-secret-value --secret-id "rds/test-ex/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
+        password=$(aws secretsmanager get-secret-value --secret-id "rds/test-ex/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
+        host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
+        psql -X "postgres://${username}:${password}@${host}:5432/${db}" $@
 }
 
 #
@@ -94,10 +148,12 @@ staging_dsn () {
 redshift-prod-psql () {
 	local db
 	local user
-	while getopts "s" opt
+    local quiet=0
+	while getopts "sq" opt
 	do
 		case $opt in
-			(s) user="guteqqidwjrb"  ;;
+			s) user="guteqqidwjrb"  ;;
+            q)   quiet=1;;
 		esac
 	done
 	shift $((OPTIND -1))
@@ -111,8 +167,11 @@ redshift-prod-psql () {
 	then
 		user="redshift_data_api_user"
 	fi
-	echo $db
-	echo $user
+    if [[ $quiet != 1 ]]
+    then
+        echo $db
+        echo $user
+    fi
 	PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile prod | jq '.DbPassword' | tr -d '"' | tr -d '\n') /opt/homebrew/Cellar/postgresql@11/11.22_1/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
@@ -196,7 +255,7 @@ al () {
 	fi
 	if [[ $all -eq 1 ]]
 	then
-		places=$(ls -D ${ALBERT_PROJECTS} | rg $apath)
+		places=$(ls ${ALBERT_PROJECTS} | rg $apath)
 		if [[ -z ${places} ]]
 		then
 			echo "No projects found"
@@ -211,7 +270,7 @@ al () {
 		fi
 		return
 	else
-		places=$(ls -D ${ALBERT_PROJECTS} | rg albert- | rg $apath)
+		places=$(ls ${ALBERT_PROJECTS} | rg albert- | rg $apath)
 		if [[ -z ${places} ]]
 		then
 			echo "No projects found"
@@ -255,6 +314,58 @@ restore_rde_db () {
 }
 
 
+pi_monitor() {
+    if ! pip freeze | rg -q termgraph
+    then
+        echo "Installing termgraph for visualizing the PI metrics"
+        pip install termgraph
+    fi
+
+    cluster="$1"
+    if [[ "$cluster" =~ '.*production' ]]
+    then
+        profile='prod-devops'
+    elif [[ "$cluster" =~ '.*staging' ]]
+    then
+        profile='staging-devops'
+    else
+        echo "Cluster $cluster is not a production or staging cluster."
+        return 1
+    fi
+    echo "Using profile: $profile"
+    writer_instance=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile "$profile" | jq -r '.DBClusters[0].DBClusterMembers[] | select(.IsClusterWriter).DBInstanceIdentifier')
+    pi_identifier=$(aws rds describe-db-instances --db-instance-identifier "$writer_instance" --profile "$profile" | jq -r '.DBInstances[0].DbiResourceId')
+
+    jq_script='
+      # keep only dimensioned metrics (exclude the total)
+      (.MetricList | map(select(.Key.Dimensions?))) as $ml
+      |
+      # header: "@" prefix + Timestamp + each wait_event.name
+      ("@ " + (($ml | map(.Key.Dimensions["db.wait_event.name"])) | join(","))),
+      # rows: align by index across DataPoints
+      ( [range(0; ($ml[0].DataPoints | length))] | .[] as $i
+        | [ $ml[0].DataPoints[$i].Timestamp ] + ($ml | map(.DataPoints[$i].Value))
+        | @csv
+      )
+    '
+
+    clear
+    while true;
+    do
+        aws pi get-resource-metrics --service-type RDS \
+            --identifier $pi_identifier \
+            --metric-queries '{"Metric":"db.load.avg","GroupBy":{"Group":"db.wait_event","Limit":6}}' \
+            --start-time $(date -v -300S +%Y-%m-%d\T%H:%M:%S) \
+            --end-time $(date +%Y-%m-%d\T%H:%M:%S) \
+            --period-in-seconds 60 \
+            --profile "$profile" > /tmp/pi_monitor_output.json
+        jq -r "$jq_script" /tmp/pi_monitor_output.json | termgraph --stacked --color {red,blue,green,magenta,yellow,black} --title "PI Monitor for $cluster" --width 40
+        sleep 10
+        clear
+    done
+}
+
+
 # reset and activate the default python virtual environment
 deact && activate "$DEFAULT_VENV"
 
@@ -263,4 +374,6 @@ cd "$ALBERT_PROJECTS"
 
 export ALBERT_FUNCTIONS_SET=1
 
+# remove shim created by pyenv
+rm /Users/adam/.pyenv/shims/albert
 

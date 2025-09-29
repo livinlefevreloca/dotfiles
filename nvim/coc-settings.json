@@ -6,6 +6,7 @@
   "python.linting.pylintEnabled": true,
   "pyright.completion.snippetSupport": false,
   "python.linting.ruffEnabled": true,
+  "inlayHint.enable": false,
   "rust-analyzer.inlayHints.chainingHints.enable": true,
   "rust-analyzer.inlayHints.bindingModeHints.enable": true,
   "rust-analyzer.inlayHints.parameterHints.enable": true,

@@ -31,7 +31,7 @@ autocmd FileType go vnoremap <C-c> :normal I// <CR>
 autocmd FileType go vnoremap <silent> <C-u> :s/\/\/ // <CR>:noh<CR>
 
 command Vconf :e $MYVIMRC
-
+command! -nargs=+ Capture let @s = trim(system(join([<f-args>], ' ')))
 " =================================================================================================================================================
 " Window Commands
 " =================================================================================================================================================
@@ -73,6 +73,7 @@ Plug 'vim-syntastic/syntastic'
 Plug 'machakann/vim-highlightedyank'
 " Style
 Plug 'overcache/NeoSolarized'
+Plug 'scottmckendry/cyberdream.nvim'
 Plug 'itchyny/lightline.vim'
 Plug 'taohexxx/lightline-solarized'
 " terraform
@@ -205,6 +206,7 @@ nnoremap <silent> sgr :call CocAction('jumpReferences', 'split ')<CR>
 nnoremap <silent> vgr :call CocAction('jumpReferences', 'vs ')<CR>
 nnoremap <silent> tgr :call CocAction('jumpReferences', 'tab drop ')<CR>
 
+
 " Use K to show documentation in preview window.
 nnoremap <silent> K :call ShowDocumentation()<CR>
 
@@ -309,7 +311,6 @@ let g:lightline = {
             \   'gitbranch': 'FugitiveHead',
             \ },
 \ }
-
 
 ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 "Colors

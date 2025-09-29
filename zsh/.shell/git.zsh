@@ -203,18 +203,35 @@ vdiff () {
 	nvim -c "DiffviewOpen $@"
 }
 
-open_pr () {
+opr () {
+
+    title=$1
+    body=$2
+
 	if ! git status > /dev/null 2>&1
 	then
 		echo "Not a git repo"
 		return 1
 	fi
-	if gh pr view
+    if $(gh pr view > /dev/null)
 	then
 		open $(gh pr view | rg 'url:\s+(.*)' -r '$1')
 	else
-		commit_message="${1}"
-		if gh pr create -t "${commit_message}"
+        if [[ -z "$title" ]]
+        then
+            echo -n "Enter PR title: "
+            read -r title
+        fi
+        rc=0
+        if [[ -z "$body" ]]
+        then
+            gh pr create -t "$title"
+            rc=$?
+        else
+            gh pr create -t "$title" -b "$body"
+            rc=$?
+        fi
+        if [[ $rc -eq 0 ]]
 		then
 			echo "PR created!"
 			open $(gh pr view | rg 'url:\s+(.*)' -r '$1')

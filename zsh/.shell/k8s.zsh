@@ -118,5 +118,11 @@ podfollow () {
 	fi
 }
 
+refresh_dev_for_docker () {
+    local new_token
+    new_token=$(aws --region us-west-2 eks get-token --cluster-name dev-remote-development-eks-2 --output json --profile dev-devops | jq -r .status.token)
+    sed -i '' "s|token:.*|token: ${new_token}|" ${KUBECONFIG}
+}
+
 
 export K8S_FUNCTIONS_SET=1

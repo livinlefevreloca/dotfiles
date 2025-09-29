@@ -1,6 +1,6 @@
 echo "Sourcing notes module"
 export BASE_NOTES_DIR="$HOME/Documents/notes/"
-export NOTES_DIR="$NOTES_DIR/Work/"
+export NOTES_DIR="$BASE_NOTES_DIR/Work/"
 
 if [ ! -d "$NOTES_DIR" ]; then
     mkdir -p "$NOTES_DIR"

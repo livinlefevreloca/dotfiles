@@ -1,5 +1,5 @@
 echo "Sourcing fzf module"
-
+export NVIM_APPNAME='lazyvim'
 #
 # Enable fzf
 #
@@ -155,9 +155,9 @@ jmp () {
 	done
 	if [[ -n "$dir" ]]
 	then
-		target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --query "$query" --tiebreak=length --preview 'exa -lR {}')
+		target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --query "$query" --tiebreak=length --preview 'ls -lR {}')
 	else
-		target=$(fd . "$HOME" -d 4 $hidden $ignore -t d | fzf --query "$query" --tiebreak=length --preview 'exa -lR {}')
+		target=$(fd . "$HOME" -d 4 $hidden $ignore -t d | fzf --query "$query" --tiebreak=length --preview 'ls -lR {}')
 	fi
 	if [[ -n "$target" ]]
 	then

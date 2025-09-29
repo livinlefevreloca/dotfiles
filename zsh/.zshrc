@@ -1,4 +1,4 @@
-export DOTFILES_DIR='/Users/adam/Projects/personal/dotfiles'
+export DOTFILES_DIR='/Users/adam/Projects/Config/dotfiles'
 # If you come from bash you might have to change your $PATH.
 export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/opt/libpq/bin:$PATH
 export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
@@ -12,7 +12,6 @@ export ZSH="$HOME/.oh-my-zsh"
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
 ZSH_THEME="xiong-chiamiov-plus-custom"
-# ZSH_THEME="robbyrussell"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -149,6 +148,11 @@ mkdir -p "${SHELL_SCRIPTS}"
 ln -s ${DOTFILES_DIR}/zsh/.shell/* ${SHELL_SCRIPTS}
 ln -s ${DOTFILES_DIR}/zsh/.shell/.aliases ${SHELL_SCRIPTS}/.aliases
 
+# Refresh lazy vim symlinks
+rm -rf "${HOME}/.config/lazyvim"
+mkdir -p "${HOME}/.config/lazyvim"
+ln -s ${DOTFILES_DIR}/lazyvim/* ${HOME}/.config/lazyvim
+
 if [[ ! -z "${TMUX+x}" ]]
 then
     source <(env | rg '_SET=1' | awk -F '=' '{print "unset "$1}')
@@ -234,3 +238,16 @@ clear
 # This section can be safely removed at any time if needed.
 [[ ! -r '/Users/adam/.opam/opam-init/init.zsh' ]] || source '/Users/adam/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
 # END opam configuration
+
+# bun completions
+[ -s "/Users/adam/.bun/_bun" ] && source "/Users/adam/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# golang
+export GOPATH="$HOME/go"
+export GOBIN="$GOPATH/bin"
+export PATH="$PATH:$GOBIN"
+export GEMINI_API_KEY=$(cat ~/.gemini)
