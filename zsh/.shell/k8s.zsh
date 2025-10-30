@@ -76,6 +76,7 @@ podfwd () {
 #
 podexec () {
 	local namespace
+  local ns
 	while getopts 'n::' opt
 	do
 		case "$opt" in
@@ -89,10 +90,13 @@ podexec () {
 		pod=$(kubectl get pods "${namespace[@]}" | cut -d' ' -f1 | fzf)
 	else
 		pod=$(kubectl get pods | cut -d' ' -f1 | fzf)
+    namespace=("-n" "$(kubectl config view --minify -o jsonpath='{..namespace}')")
+    
 	fi
+  echo $ns
 	if [[ -n "$pod" ]]
 	then
-		kubectl exec -it "$pod" -- /bin/bash
+		kubectl exec -it "$pod" "${namespace[@]}"  -- /bin/bash
 	fi
 }
 

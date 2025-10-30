@@ -142,6 +142,15 @@ j() {
     fg %$num
 }
 
+jtl () {
+  if [[ $(git rev-parse --is-inside-work-tree 2>/dev/null) != 'true' ]]
+  then
+    echo "Not in a git repository" && return
+  fi
+
+  cd $(git rev-parse --show-toplevel)
+}
+
 decolorize () {
 	gsed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
 }

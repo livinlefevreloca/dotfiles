@@ -62,24 +62,26 @@ staging_psql () {
 		export cluster="$1"
 		shift
 	fi
-	export db=$(echo "$cluster" | cut -d'-' -f2)
+	export database=$(echo "$cluster" | cut -d'-' -f2)
 
-    if [[ $db == 'main16' ]]
-    then
-        db='main'
-    elif [[ $db == 'investing16' ]]
-    then
-        db='investing'
-    elif [[ $db == 'transactionsmap16' ]]
-    then
-        db='transactionsmap'
-    fi
+  db=$database
+
+  if [[ $database == 'main16' ]]
+  then
+      database='main'
+  elif [[ $database == 'investing16' ]]
+  then
+      database='investing'
+  elif [[ $database == 'transactionsmap16' ]]
+  then
+      database='transactionsmap'
+  fi
 
 	export AWS_PROFILE=staging-devops
 	username=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_username" --profile staging-devops | jq -r ".SecretString")
 	password=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_password" --profile staging-devops | jq -r ".SecretString")
 	host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile staging-devops | jq -r '.DBClusters[0].Endpoint')
-	pgcli "postgres://${username}:${password}@${host}:5432/${db}" $@
+	psql "postgres://${username}:${password}@${host}:5432/${database}" $@
 }
 
 #
@@ -91,25 +93,28 @@ staging_dsn () {
 		cluster=$(_select_cluster)
 	else
 		export cluster="$1"
+		shift
 	fi
-	export db=$(echo "$cluster" | cut -d'-' -f2)
+	export database=$(echo "$cluster" | cut -d'-' -f2)
 
-    if [[ $db == 'main16' ]]
-    then
-        db='main'
-    elif [[ $db == 'investing16' ]]
-    then
-        db='investing'
-    elif [[ $db == 'transactionsmap16' ]]
-    then
-        db='transactionsmap'
-    fi
+  db=$database
+
+  if [[ $database == 'main16' ]]
+  then
+      database='main'
+  elif [[ $database == 'investing16' ]]
+  then
+      database='investing'
+  elif [[ $database == 'transactionsmap16' ]]
+  then
+      database='transactionsmap'
+  fi
 
 	export AWS_PROFILE=staging-devops
 	username=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_username" --profile staging-devops | jq -r ".SecretString")
 	password=$(aws secretsmanager get-secret-value --secret-id "rds/staging/${db}/master_password" --profile staging-devops | jq -r ".SecretString")
 	host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile staging-devops | jq -r '.DBClusters[0].Endpoint')
-	echo "postgres://${username}:${password}@${host}:5432/${db}"
+	echo "postgres://${username}:${password}@${host}:5432/${database}"
 }
 
 
@@ -139,6 +144,162 @@ testex_psql () {
         username=$(aws secretsmanager get-secret-value --secret-id "rds/test-ex/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
         password=$(aws secretsmanager get-secret-value --secret-id "rds/test-ex/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
         host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
+        psql -X "postgres://${username}:${password}@${host}:5432/${db}" $@
+}
+
+prod_dsn () {
+        USE_WRITER=0
+        INSTANCE=0
+        while [[ "$#" -gt 1 ]]
+        do
+          case "$1" in
+            ('-w' | '--writer') USE_WRITER=1 
+              shift ;;
+            ('-i' | '--instance') INSTANCE=$2 
+              shift; shift ;;
+            (*) echo "unexpected argument found ${1} ... exiting"
+              exit(1) ;;
+          esac
+        done
+
+        if [[ -z "$1" ]]
+        then
+                cluster=$(_select_cluster)
+        else
+                export cluster="$1"
+                shift
+        fi
+        export db=$(echo "$cluster" | cut -d'-' -f2)
+        if [[ $db == 'main16' ]]
+        then
+                db='main'
+        elif [[ $db == 'investing16' ]]
+        then
+                db='investing'
+        elif [[ $db == 'transactionsmap16' ]]
+        then
+                db='transactionsmap'
+        fi
+
+        if [[ $USE_WRITER == 1 ]];
+        then
+          echo
+          echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
+          read -r confirm
+          if [[ $confirm != 'yes' ]]
+          then
+            return 0
+          fi
+        fi
+
+
+        export AWS_PROFILE=prod-devops
+        username=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
+        password=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
+        if [[ $USE_WRITER == 1 ]];
+        then
+          host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
+        elif [[ $INSTANCE != 0 ]];
+        then
+          member=$(aws rds describe-db-clusters --profile prod-devops --db-cluster-identifier "$cluster" | jq -r '.DBClusters[0].DBClusterMembers' | jq '.[] | select(.DBInstanceIdentifier |endswith("'"$INSTANCE"'"))')
+          if [[ -z "$member" ]];
+          then
+            echo "No instance matching $INSTANCE found in cluster $cluster"
+            return 1
+          fi
+          if [[ $(echo $member | jq -r '.IsClusterWriter') == 'true' ]];
+          then
+            echo
+            echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
+            read -r confirm
+            if [[ $confirm != 'yes' ]]
+            then
+              return 0
+            fi
+          fi
+          host="$(echo $member | jq -r '.DBInstanceIdentifier').c2cdgqnf2abq.us-west-2.rds.amazonaws.com"
+        else
+          host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].ReaderEndpoint')
+        fi
+        echo "postgres://${username}:${password}@${host}:5432/${db}"
+}
+
+prod_psql () {
+        USE_WRITER=0
+        INSTANCE=0
+        while [[ "$#" -gt 1 ]]
+        do
+          case "$1" in
+            ('-w' | '--writer') USE_WRITER=1 
+              shift ;;
+            ('-i' | '--instance') INSTANCE=$2 
+              shift; shift ;;
+            (*) echo "unexpected argument found ${1} ... exiting"
+              exit(1) ;;
+          esac
+        done
+
+        if [[ -z "$1" ]]
+        then
+                cluster=$(_select_cluster)
+        else
+                export cluster="$1"
+                shift
+        fi
+        export db=$(echo "$cluster" | cut -d'-' -f2)
+        if [[ $db == 'main16' ]]
+        then
+                db='main'
+        elif [[ $db == 'investing16' ]]
+        then
+                db='investing'
+        elif [[ $db == 'transactionsmap16' ]]
+        then
+                db='transactionsmap'
+        fi
+
+        if [[ $USE_WRITER == 1 ]];
+        then
+          echo
+          echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
+          read -r confirm
+          if [[ $confirm != 'yes' ]]
+          then
+            return 0
+          fi
+        fi
+
+
+        export AWS_PROFILE=prod-devops
+        username=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
+        password=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
+        if [[ $USE_WRITER == 1 ]];
+        then
+          host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
+        elif [[ $INSTANCE != 0 ]];
+        then
+          member=$(aws rds describe-db-clusters --profile prod-devops --db-cluster-identifier "$cluster" | jq -r '.DBClusters[0].DBClusterMembers' | jq '.[] | select(.DBInstanceIdentifier |endswith("'"$INSTANCE"'"))')
+          if [[ -z "$member" ]];
+          then
+            echo "No instance matching $INSTANCE found in cluster $cluster"
+            return 1
+          fi
+          if [[ $(echo $member | jq -r '.IsClusterWriter') == 'true' ]];
+          then
+            echo
+            echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
+            read -r confirm
+            if [[ $confirm != 'yes' ]]
+            then
+              return 0
+            fi
+          fi
+          host="$(echo $member | jq -r '.DBInstanceIdentifier').c2cdgqnf2abq.us-west-2.rds.amazonaws.com"
+        else
+          host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].ReaderEndpoint')
+        fi
+        echo "connecting to host ${host} as user: ${username}"
+        echo
         psql -X "postgres://${username}:${password}@${host}:5432/${db}" $@
 }
 
@@ -172,7 +333,7 @@ redshift-prod-psql () {
         echo $db
         echo $user
     fi
-	PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile prod | jq '.DbPassword' | tr -d '"' | tr -d '\n') /opt/homebrew/Cellar/postgresql@11/11.22_1/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
+	PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile prod | jq '.DbPassword' | tr -d '"' | tr -d '\n') PSQL_HISTORY=$HOME/.psql_history_12 /opt/homebrew/Cellar/postgresql@12/12.22_1/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
 #
@@ -375,5 +536,5 @@ cd "$ALBERT_PROJECTS"
 export ALBERT_FUNCTIONS_SET=1
 
 # remove shim created by pyenv
-rm /Users/adam/.pyenv/shims/albert
+rm /Users/adam/.pyenv/shims/albert &> /dev/null
 

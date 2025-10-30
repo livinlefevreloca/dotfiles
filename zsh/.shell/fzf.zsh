@@ -142,12 +142,22 @@ jmp () {
 			shift
 		fi
 	fi
-	while getopts 'hicd::' opt
+	while getopts 'hicaurgd::' opt
 	do
 		case "$opt" in
 			(h) hidden='-H'  ;;
 			(i) ignore='-I'  ;;
 			(c) dir=$(pwd)  ;;
+      (a) dir=${ALBERT_PROJECTS} ;;
+      (u) dir=${HOME} ;;
+      (r) dir='/' ;;
+      (g) 
+        if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) !=  true ]]
+        then
+          echo "Not inside a git repository"
+          return 1
+        fi
+        dir=$(git rev-parse --show-toplevel) ;;
 			(d) dir="$OPTARG"  ;;
 			(\?) echo "unexpected argument found ${1}"
 				return 1 ;;
@@ -175,6 +185,11 @@ gprev () {
     nvim $(gd --name-only master HEAD  | fzf --bind 'ctrl-k:preview-up,ctrl-j:preview-down,ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-g:preview-bottom,ctrl-b:preview-top'  --preview 'git diff -U"$(cat {} | wc -l)" master HEAD {} | delta')
 }
 
+
+ch () {
+  pth=$(d -v | fzf | xargs | cut -d' ' -f2)
+  cd "${pth/#\~/$HOME}"
+}
 
 
 #

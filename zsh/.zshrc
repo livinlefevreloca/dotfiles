@@ -158,11 +158,11 @@ then
     source <(env | rg '_SET=1' | awk -F '=' '{print "unset "$1}')
 fi
 
-if [[ $(env | rg VIMRUNTIME) ]]
-then
-    source ~/.shell/.aliases
-    echo "Running from vim skipping modules"
-else
+# if [[ $(env | rg VIMRUNTIME) ]]
+# then
+#     source ~/.shell/.aliases
+#     echo "Running from vim skipping modules"
+# else
 # fzf
 [[ ! "$FZF_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/fzf.zsh" ]] && source ${SHELL_SCRIPTS}/fzf.zsh
 #end fzf functions
@@ -217,7 +217,6 @@ else
 
 
 
-fi
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
