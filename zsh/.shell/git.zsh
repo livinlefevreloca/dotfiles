@@ -250,4 +250,12 @@ gprev () {
 	nvim $(gd --name-only master HEAD  | fzf --bind 'ctrl-k:preview-up,ctrl-j:preview-down,ctrl-u:preview-half-page-up,ctrl-d:preview-half-page-down,ctrl-g:preview-bottom,ctrl-b:preview-top'  --preview 'git diff -U"$(cat {} | wc -l)" master HEAD {} | delta')
 }
 
+
+gdv () { 
+  NVIM_APPNAME=lazyvim nvim --cmd "let g:no_auto_chdir=1" -c 'DiffviewOpen'
+}
+gdvh () {
+  NVIM_APPNAME=lazyvim nvim --cmd "let g:no_auto_chdir=1" -c 'DiffviewFileHistory %'
+}
+
 export GIT_FUNCTIONS_SET=1

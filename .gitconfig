@@ -2,10 +2,47 @@
     email = adamtlefevre@gmail.com
     name = Adam Lefevre
 [core]
-    excludesfile = /Users/adamlefevre/.gitignore
-[difftool]
-	prompt = false
+	excludesFile = ~/.gitignore
+  pager = delta
+
+[interactive]
+    diffFilter = delta --color-only --features=interactive -n
+
+[delta]
+  features = decorations
+  side-by-side = true
+  line-numbers = true
+
+
+[delta "interactive"]
+  keep-plus-minus-markers = false
+
+
+[delta "decorations"]
+    commit-decoration-style = blue ol
+    commit-style = raw
+    file-style = omit
+    hunk-header-decoration-style = blue box
+    hunk-header-file-style = red
+    hunk-header-line-number-style = "#067a00"
+    hunk-header-style = file line-number syntax
+
 [diff]
-    tool = nvimdiff
-[difftool "nvimdiff"]
-    cmd = "nvim -d \"$LOCAL\" \"$REMOTE\""
+	tool = delta
+
+[filter "lfs"]
+	process = git-lfs filter-process
+	required = true
+	clean = git-lfs clean -- %f
+  smudge = git-lfs smudge -- %f
+
+
+[alias]
+    gdv = "NVIM_APPNAME=lazyvim nvim -c 'DiffviewOpen'"
+    gdvh = "NVIM_APPNAME=lazyvim nvim -c 'DiffviewFileHistory %'"
+[credential "https://github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential
+[credential "https://gist.github.com"]
+	helper = 
+	helper = !/opt/homebrew/bin/gh auth git-credential

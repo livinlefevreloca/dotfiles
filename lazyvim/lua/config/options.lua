@@ -8,5 +8,10 @@ vim.api.nvim_create_autocmd("User", {
   pattern = "VeryLazy",
   callback = function()
     pcall(require, "config.commands")  -- this file defines ToggleInlineDiagnostics
+
+    -- Disable inline diagnostics by default (after LazyVim loads)
+    vim.diagnostic.config({
+      virtual_text = false,
+    })
   end,
 })

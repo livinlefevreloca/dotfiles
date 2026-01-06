@@ -153,9 +153,44 @@ rm -rf "${HOME}/.config/lazyvim"
 mkdir -p "${HOME}/.config/lazyvim"
 ln -s ${DOTFILES_DIR}/lazyvim/* ${HOME}/.config/lazyvim
 
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+# export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
+
+[ -f "/Users/adamlefevre/.ghcup/env" ] && source "/Users/adamlefevre/.ghcup/env" # ghcup-env
+
+source ~/.private.env
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+clear
+
+
+# BEGIN opam configuration
+# This is useful if you're using opam as it adds:
+#   - the correct directories to the PATH
+#   - auto-completion for the opam binary
+# This section can be safely removed at any time if needed.
+[[ ! -r '/Users/adam/.opam/opam-init/init.zsh' ]] || source '/Users/adam/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
+# END opam configuration
+
+# bun completions
+[ -s "/Users/adam/.bun/_bun" ] && source "/Users/adam/.bun/_bun"
+
+# bun
+export BUN_INSTALL="$HOME/.bun"
+export PATH="$BUN_INSTALL/bin:$PATH"
+
+# golang
+export GOPATH="$HOME/go"
+export GOBIN="$GOPATH/bin"
+export PATH="$PATH:$GOBIN"
+export GEMINI_API_KEY=$(cat ~/.gemini)
+
+export IN_TMUX=0
 if [[ ! -z "${TMUX+x}" ]]
 then
     source <(env | rg '_SET=1' | awk -F '=' '{print "unset "$1}')
+    export IN_TMUX=1
 fi
 
 # if [[ $(env | rg VIMRUNTIME) ]]
@@ -211,42 +246,13 @@ fi
 [[ ! "$LLM_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/llm.zsh" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end LLM
 
+# TMUX
+[[ ! "$TMUX_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/tmux.zsh" ]] && source "${SHELL_SCRIPTS}/tmux.zsh"
+# end TMUX
+
 #Albert
 [[ $(whoami) -eq 'adamlefevre' ]] && [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end Albert
 
 
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-# export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
-
-[ -f "/Users/adamlefevre/.ghcup/env" ] && source "/Users/adamlefevre/.ghcup/env" # ghcup-env
-
-source ~/.private.env
-
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-clear
-
-
-# BEGIN opam configuration
-# This is useful if you're using opam as it adds:
-#   - the correct directories to the PATH
-#   - auto-completion for the opam binary
-# This section can be safely removed at any time if needed.
-[[ ! -r '/Users/adam/.opam/opam-init/init.zsh' ]] || source '/Users/adam/.opam/opam-init/init.zsh' > /dev/null 2> /dev/null
-# END opam configuration
-
-# bun completions
-[ -s "/Users/adam/.bun/_bun" ] && source "/Users/adam/.bun/_bun"
-
-# bun
-export BUN_INSTALL="$HOME/.bun"
-export PATH="$BUN_INSTALL/bin:$PATH"
-
-# golang
-export GOPATH="$HOME/go"
-export GOBIN="$GOPATH/bin"
-export PATH="$PATH:$GOBIN"
-export GEMINI_API_KEY=$(cat ~/.gemini)

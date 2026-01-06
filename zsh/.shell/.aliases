@@ -27,6 +27,7 @@ alias grbm='git rebase origin/master'
 alias gst='git stash'
 alias gs='git status'
 alias gco='git checkout'
+alias gds='git diff --staged'
 
 alias history=omz_history
 
@@ -50,6 +51,7 @@ alias kconf='nvim ~/.kube/config'
 alias sshconf='nvim ~/.ssh/config'
 alias awsconf='nvim ~/.aws/config'
 alias pgconf='nvim ~/.psqlrc'
+alias gconf='nvim ~/.gitconfig'
 alias y='pbcopy'
 alias p=pbpaste
 

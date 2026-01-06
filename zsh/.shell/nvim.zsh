@@ -25,9 +25,10 @@ vim () {
         fi
         rm $tasksfile
 	fi
+}
 
-
-
+scratch() {
+  lvim /tmp/scratch-$(date +%s)
 }
 
 export NVIM_FUNCTIONS_SET=1

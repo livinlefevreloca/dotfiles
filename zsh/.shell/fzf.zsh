@@ -31,12 +31,12 @@ edit () {
 		return 0
 	fi
 	lines=$(fd --full-path $hidden $ignore -t f "$query")
-	if [[ $(echo "$lines" | wc -l) -eq 1 ]]
+	if [[ $(echo -n "$lines" | wc -l) -eq 0 && $(echo -n "$lines" | wc -c) > 0 ]]
 	then
+    echo "$lines"
 		nvim "$lines"
 		return 0
-	fi
-	lines=$(fd $hidden $ignore -t f --full-path)
+  fi
 	if [[ "$lines" == "" ]]
 	then
 		return 1
@@ -142,16 +142,15 @@ jmp () {
 			shift
 		fi
 	fi
-	while getopts 'hicaurgd::' opt
+	while getopts 'hiaurgd::' opt
 	do
 		case "$opt" in
 			(h) hidden='-H'  ;;
 			(i) ignore='-I'  ;;
-			(c) dir=$(pwd)  ;;
       (a) dir=${ALBERT_PROJECTS} ;;
       (u) dir=${HOME} ;;
       (r) dir='/' ;;
-      (g) 
+      (g)
         if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) !=  true ]]
         then
           echo "Not inside a git repository"
@@ -167,12 +166,21 @@ jmp () {
 	then
 		target=$(fd . "$dir" -d 4 $hidden $ignore -t d  | fzf --query "$query" --tiebreak=length --preview 'ls -lR {}')
 	else
-		target=$(fd . "$HOME" -d 4 $hidden $ignore -t d | fzf --query "$query" --tiebreak=length --preview 'ls -lR {}')
+    target=$(fd . "$(pwd)" -d 4 $hidden $ignore -t d | fzf --query "$query" --tiebreak=length --preview 'ls -lR {}')
 	fi
 	if [[ -n "$target" ]]
 	then
 		cd "$target"
 	fi
+}
+
+crg () {
+    if [[ $(git rev-parse --is-inside-work-tree 2> /dev/null) !=  true ]]
+    then
+      echo "Not inside a git repository"
+      return 1
+    fi
+    cd $(git rev-parse --show-toplevel)
 }
 
 

@@ -16,7 +16,7 @@ codegen () {
 	while [[ "$#" -ge 1 ]]
 	do
 		case "$1" in
-			('-p' | '--pull') PULL='--pull'
+			('-p' | '--pull') PULL='--no-pull'
 				shift ;;
 			('-c' | '--mount-common') COMMON='--mount-common'
 				shift ;;
@@ -153,9 +153,9 @@ prod_dsn () {
         while [[ "$#" -gt 1 ]]
         do
           case "$1" in
-            ('-w' | '--writer') USE_WRITER=1 
+            ('-w' | '--writer') USE_WRITER=1
               shift ;;
-            ('-i' | '--instance') INSTANCE=$2 
+            ('-i' | '--instance') INSTANCE=$2
               shift; shift ;;
             (*) echo "unexpected argument found ${1} ... exiting"
               exit(1) ;;
@@ -230,9 +230,9 @@ prod_psql () {
         while [[ "$#" -gt 1 ]]
         do
           case "$1" in
-            ('-w' | '--writer') USE_WRITER=1 
+            ('-w' | '--writer') USE_WRITER=1
               shift ;;
-            ('-i' | '--instance') INSTANCE=$2 
+            ('-i' | '--instance') INSTANCE=$2
               shift; shift ;;
             (*) echo "unexpected argument found ${1} ... exiting"
               exit(1) ;;
@@ -390,14 +390,37 @@ backup_rde_dbs () {
 	done
 }
 
+staging_pgb_admin() {
+  pod=$(kubectl get pods -n pgbouncer --context staging-us-west-2-eks-4 -l "albert.com/db=${1},albert.com/context=${2},albert.com/workload-type=pgbouncer-ha" -o json | jq -r '.items[] | .metadata.name' | fzf)
+  kubectl exec -c pgbouncer -n pgbouncer --context staging-us-west-2-eks-4 -it $pod -- sh -c 'psql postgres://${AURORA_DB_USER__MASTER}:${AURORA_DB_PASSWORD__MASTER}@localhost:6432/pgbouncer'
+}
+
+
+staging_pgb_admin_pf() {
+  if [[ "$3" == '-r' ]]; then
+    pod=$(kubectl get pods -n pgbouncer --context staging-us-west-2-eks-4 -l "albert.com/db=${1},albert.com/context=${2},albert.com/workload-type=pgbouncer-ha" -o json | jq -r '.items[0] | .metadata.name')
+    shift
+    shift
+    shift
+  else
+    pod=$(kubectl get pods -n pgbouncer --context staging-us-west-2-eks-4 -l "albert.com/db=${1},albert.com/context=${2},albert.com/workload-type=pgbouncer-ha" -o json | jq -r '.items[] | .metadata.name' | fzf)
+    shift
+    shift
+  fi
+  kubectl port-forward -n pgbouncer --context staging-us-west-2-eks-4 $pod 6432:6432 &> /dev/null &
+  pf_pid=$!
+  dsn=$(kubectl exec -c pgbouncer -n pgbouncer --context staging-us-west-2-eks-4 -it $pod -- sh -c 'echo -n postgres://${AURORA_DB_USER__MASTER}:${AURORA_DB_PASSWORD__MASTER}')"@localhost:6432/pgbouncer"
+  psql $dsn $@
+  kill $pf_pid
+}
+
 al () {
 	local all
 	local root
 	local apath
-	while getopts "ar" opt
+	while getopts "r" opt
 	do
 		case $opt in
-			(a) all=1  ;;
 			(r) root=1  ;;
 		esac
 	done
@@ -414,38 +437,20 @@ al () {
 		cd $ALBERT_PROJECTS
 		return
 	fi
-	if [[ $all -eq 1 ]]
-	then
-		places=$(ls ${ALBERT_PROJECTS} | rg $apath)
-		if [[ -z ${places} ]]
-		then
-			echo "No projects found"
-			return
-		fi
-		if [[ $(echo $places | wc -l) -gt 1 ]]
-		then
-			cd "${ALBERT_PROJECTS}$(echo $places | fzf)"
-		else
-			echo "cd to ${ALBERT_PROJECTS}$(echo $places)"
-			cd "${ALBERT_PROJECTS}$(echo $places)"
-		fi
-		return
-	else
-		places=$(ls ${ALBERT_PROJECTS} | rg albert- | rg $apath)
-		if [[ -z ${places} ]]
-		then
-			echo "No projects found"
-			return
-		fi
-		if [[ $(echo $places | wc -l) -gt 1 ]]
-		then
-			cd "${ALBERT_PROJECTS}$(echo $places | fzf)"
-		else
-			echo "cd to ${ALBERT_PROJECTS}$(echo $places)"
-			cd "${ALBERT_PROJECTS}$(echo $places)"
-		fi
-		return
-	fi
+  places=$(fd . -td -d1 ${ALBERT_PROJECTS} | awk -F '/' '{print $(NF-1)}'| rg $apath)
+  if [[ -z ${places} ]]
+  then
+    echo "No projects found"
+    return
+  fi
+  if [[ $(echo $places | wc -l) -gt 1 ]]
+  then
+    cd "${ALBERT_PROJECTS}$(echo $places | fzf)"
+  else
+    echo "cd to ${ALBERT_PROJECTS}$(echo $places)"
+    cd "${ALBERT_PROJECTS}$(echo $places)"
+  fi
+  return
 }
 
 restore_rde_db () {
@@ -526,15 +531,30 @@ pi_monitor() {
     done
 }
 
+# Find the hash image tag for a given ecr repo
+find_branch_image() {
+  tag=$(aws ecr list-images --repository-name $1 \
+    --registry-id 538001969475 \
+    --filter tagStatus=TAGGED \
+    --max-items 10000 \
+    --profile devops \
+    | jq -r '
+        .imageIds
+        | sort_by(.imageDigest)
+        | group_by(.imageDigest)[]
+        | select(any(.imageTag | test("'$2'.*amd64")))[]
+        | select(.imageTag | contains("hash")).imageTag
+      ' \
+  )
+  echo -n $tag | y
+  echo "Copied image tag: $tag to clipboard"
+}
+
 
 # reset and activate the default python virtual environment
 deact && activate "$DEFAULT_VENV"
-
-# Start in the albert projects directory
-cd "$ALBERT_PROJECTS"
 
 export ALBERT_FUNCTIONS_SET=1
 
 # remove shim created by pyenv
 rm /Users/adam/.pyenv/shims/albert &> /dev/null
-

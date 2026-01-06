@@ -142,15 +142,6 @@ j() {
     fg %$num
 }
 
-jtl () {
-  if [[ $(git rev-parse --is-inside-work-tree 2>/dev/null) != 'true' ]]
-  then
-    echo "Not in a git repository" && return
-  fi
-
-  cd $(git rev-parse --show-toplevel)
-}
-
 decolorize () {
 	gsed 's/\x1B\[[0-9;]\{1,\}[A-Za-z]//g'
 }
@@ -158,5 +149,15 @@ decolorize () {
 mkcd () {
 	mkdir -p $@ && cd ${@:$#}
 }
+
+chtsht () {
+  local query="$@"
+  if [[ -z "${query}" ]]
+  then
+    query=$(curl -s "cheat.sh/:list" | fzf --preview 'curl -s cheat.sh/{}')
+  fi
+  curl -s "cheat.sh/${query// /+}" | delta
+}
+
 
 export UTIL_FUNCTIONS_SET=1

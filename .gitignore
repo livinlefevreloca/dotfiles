@@ -1,2 +1,8 @@
-.vim
-.jukit
+upgradetesting/
+.rde/
+CLAUDE.md
+.claude/
+prd/
+prd-file.md
+.cursor/rules/albert
+.claude/settings.local.json
