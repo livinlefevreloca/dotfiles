@@ -102,7 +102,10 @@ gpush () {
 		pr=1
 		shift
 	fi
-	if [[ "$branch" == 'master' ]]
+
+  declare protected_branches=("master" "staging" "production")
+
+  if [[ ${protected_branches[(ie)$branch]} -le ${#protected_branches} ]]
 	then
 		echo -n "Are your sure you want to push to master? (y/n): "
 		read res
@@ -127,7 +130,7 @@ gpush () {
 gpull () {
 	if [[ ! -n "$1" ]]
 	then
-		git pull origin $(curr_branch) --ff-only
+		git pull origin $(curr_branch) $@
 		return 0
 	fi
 	git pull origin $(curr_branch) $@
@@ -160,6 +163,16 @@ delbranch () {
 	fi
 	echo "deleting branches: $branches"
 	git branch -D $(echo "$branches")
+}
+
+gpullfix () {
+  local message=$1
+  git reset HEAD~1
+  git stash
+  git pull origin $(curr_branch)
+  git stash pop
+  git commit -m "$1"
+  git push origin $(curr_branch)
 }
 
 
@@ -202,6 +215,24 @@ cp_commit () {
 vdiff () {
 	nvim -c "DiffviewOpen $@"
 }
+
+#
+# Switch to recent branch
+#
+gbh () {
+  local depth=$1
+  if [[ -z $depth ]]
+  then
+    depth=100
+  fi
+
+  local preview_command='echo $(git rev-list --left-right --count master...$(echo {} | tr -d " ")  | tr -s " " | awk '"'"'{print "Behind branch master by: "$1" commits <--> Ahead of branch master by "$2" commits"}'"'"') && printf "\n" && git diff --color=always master $(echo {} | tr -d " ") --stat | tr -s " " | less -r'
+  local branch=$(cat <(git branch | cut -d' ' -f3) <(git reflog | head -${depth}  |rg -o '[a-zA-z0-9][a-z0-0A-Z-]+' | sort | uniq) | rg '.' | sort | uniq -d | fzf -m --preview $preview_command)
+
+  git checkout $branch
+  git pull origin $branch
+}
+
 
 opr () {
 
@@ -251,7 +282,7 @@ gprev () {
 }
 
 
-gdv () { 
+gdv () {
   NVIM_APPNAME=lazyvim nvim --cmd "let g:no_auto_chdir=1" -c 'DiffviewOpen'
 }
 gdvh () {

@@ -6,3 +6,8 @@ prd/
 prd-file.md
 .cursor/rules/albert
 .claude/settings.local.json
+.tmux
+
+# Git worktrees
+.worktree
+.dir.env

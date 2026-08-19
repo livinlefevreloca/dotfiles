@@ -60,5 +60,5 @@ alias large='. ~/.oh-my-zsh/themes/xiong-chiamiov-plus-custom.zsh-theme'
 alias dm=lazydocker
 alias tf=terraform
 alias mydocker='docker build -t mydocker . && docker run --cap-add="SYS_ADMIN" mydocker'
-alias lvim='NVIM_APPNAME=lazyvim nvim'
+alias vim='NVIM_APPNAME=lazyvim nvim'
 

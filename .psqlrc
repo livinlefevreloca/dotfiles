@@ -1,11 +1,14 @@
 
-\set PROMPT1 '(db:%/)-(user:%n)-(pid:%p)~%x> '
+
+\set QUIET 1
+SELECT CASE WHEN current_setting('default_transaction_read_only') = 'on'
+            THEN ''
+            ELSE '%[%033[1;41m%] WRITE %[%033[0m%] ' END AS rw_warn \gset
+\set PROMPT1 :rw_warn'%n@%/%R%# '
 
 \x auto
-\set ON_ERROR_STOP on
-\set ON_ERROR_ROLLBACK interactive
 
-\pset null '(null)' 
+\pset null '(null)'
 \pset linestyle 'unicode'
 \pset unicode_border_linestyle single
 \pset unicode_column_linestyle single
@@ -14,3 +17,4 @@
 \set HISTSIZE 10000
 
 \setenv LESS '-iMFXSx4R'
+\unset QUIET

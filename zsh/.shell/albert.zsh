@@ -1,10 +1,10 @@
 echo "Sourcing albert module"
 
-export ALBERT_PROJECTS="/Users/$USER/Projects/albert/"
-export ALBERT_ROOT="/Users/$USER/Projects/albert/albert-main/"
+export ALBERT_PROJECTS="/Users/adam/Projects/albert/"
+export ALBERT_ROOT="/Users/adam/Projects/albert/albert-main/"
 export LOOKER_DIR="${ALBERT_PROJECTS}looker"
 export AWS_DEFAULT_PROFILE=dev-engineer
-export DEFAULT_VENV=albert
+export CRONITOR_CONFIG=~/.cronitor/cronitor.json
 
 #
 # Run the replication codegen locally via rde runlocal
@@ -35,10 +35,6 @@ codegen () {
 		APP_SERVICE='authentication'
 	else
 		APP_SERVICE="$SERVICE"
-	fi
-	if [[ $(albert dev telepresence-status | rg "User Daemon" | awk -F ':' 'gsub(/^[ \t]+/, "", $0); {print $2}') == 'Not running' ]]
-	then
-		albert dev telepresence-connect
 	fi
 	albert dev runlocal -s "$SERVICE" -v "${ALBERT_PROJECTS}looker":/looker,"${ALBERT_PROJECTS}albert-dbt-analytics-transforms":/albert-dbt-analytics-transforms "$PULL" "$COMMON" -e DBT_REPO_PATH='/albert-dbt-analytics-transforms' -e LOOKER_REPO_PATH='/looker' -- python manage.py generate_replication_code "$APP_SERVICE" "$CONFIG"
 }
@@ -169,33 +165,13 @@ prod_dsn () {
                 export cluster="$1"
                 shift
         fi
-        export db=$(echo "$cluster" | cut -d'-' -f2)
-        if [[ $db == 'main16' ]]
-        then
-                db='main'
-        elif [[ $db == 'investing16' ]]
-        then
-                db='investing'
-        elif [[ $db == 'transactionsmap16' ]]
-        then
-                db='transactionsmap'
-        fi
-
-        if [[ $USE_WRITER == 1 ]];
-        then
-          echo
-          echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
-          read -r confirm
-          if [[ $confirm != 'yes' ]]
-          then
-            return 0
-          fi
-        fi
-
+        export db=$(echo "$cluster" | cut -d'-' -f2 | rg -o '[a-z]+')
 
         export AWS_PROFILE=prod-devops
-        username=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
-        password=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
+        secret_data=$(aws secretsmanager get-secret-value --secret-id "app_config/prod/rds/${db}" --profile $AWS_PROFILE | jq -r ".SecretString")
+        username=$(echo $secret_data | jq -r '."role.master"')
+        password=$(echo $secret_data | jq -r '."role.master.password"')
+        database=$(echo $secret_data | jq -r '."aurora.database_name"')
         if [[ $USE_WRITER == 1 ]];
         then
           host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
@@ -221,21 +197,29 @@ prod_dsn () {
         else
           host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].ReaderEndpoint')
         fi
-        echo "postgres://${username}:${password}@${host}:5432/${db}"
+        echo "postgres://${username}:${password}@${host}:5432/${database}"
 }
 
 prod_psql () {
         USE_WRITER=0
         INSTANCE=0
-        while [[ "$#" -gt 1 ]]
+        READ_ONLY=1
+        SKIP_CONFIRM=0
+        while [[ "$#" -gt 0 ]]
         do
           case "$1" in
             ('-w' | '--writer') USE_WRITER=1
               shift ;;
+            ('-s' | '--superuser') READ_ONLY=0
+              shift ;;
+            ('-y' | '--yes') SKIP_CONFIRM=1
+              shift ;;
             ('-i' | '--instance') INSTANCE=$2
-              shift; shift ;;
-            (*) echo "unexpected argument found ${1} ... exiting"
-              exit(1) ;;
+              shift 2 ;;
+            ('--') shift; break ;;
+            (-*) echo "unexpected option ${1} ... exiting"
+              return 1 ;;
+            (*) break ;;
           esac
         done
 
@@ -246,22 +230,11 @@ prod_psql () {
                 export cluster="$1"
                 shift
         fi
-        export db=$(echo "$cluster" | cut -d'-' -f2)
-        if [[ $db == 'main16' ]]
-        then
-                db='main'
-        elif [[ $db == 'investing16' ]]
-        then
-                db='investing'
-        elif [[ $db == 'transactionsmap16' ]]
-        then
-                db='transactionsmap'
-        fi
-
-        if [[ $USE_WRITER == 1 ]];
+        export db=$(echo "$cluster" | cut -d'-' -f2 | rg -o '[a-z]+')
+        if [[ $USE_WRITER == 1 && $READ_ONLY == 0 && $SKIP_CONFIRM == 0 ]];
         then
           echo
-          echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
+          echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER as super user. CONTINUE? (yes/no) "
           read -r confirm
           if [[ $confirm != 'yes' ]]
           then
@@ -269,10 +242,17 @@ prod_psql () {
           fi
         fi
 
+        if [[ $READ_ONLY == 1 ]];
+        then
+          export PGOPTIONS='-c default_transaction_read_only=on'
+        fi
+
 
         export AWS_PROFILE=prod-devops
-        username=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_username" --profile $AWS_PROFILE | jq -r ".SecretString")
-        password=$(aws secretsmanager get-secret-value --secret-id "rds/production/${db}/master_password" --profile $AWS_PROFILE | jq -r ".SecretString")
+        secret_data=$(aws secretsmanager get-secret-value --secret-id "app_config/prod/rds/${db}" --profile $AWS_PROFILE | jq -r ".SecretString")
+        username=$(echo $secret_data | jq -r '."role.master"')
+        password=$(echo $secret_data | jq -r '."role.master.password"')
+        database=$(echo $secret_data | jq -r '."aurora.database_name"')
         if [[ $USE_WRITER == 1 ]];
         then
           host=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile $AWS_PROFILE | jq -r '.DBClusters[0].Endpoint')
@@ -284,7 +264,7 @@ prod_psql () {
             echo "No instance matching $INSTANCE found in cluster $cluster"
             return 1
           fi
-          if [[ $(echo $member | jq -r '.IsClusterWriter') == 'true' ]];
+          if [[ $(echo $member | jq -r '.IsClusterWriter') == 'true' && $SKIP_CONFIRM == 0 ]];
           then
             echo
             echo -n "**WARNING** YOU ARE ATTACHING TO THE WRITER INSTANCE OF THE ${cluster} CLUSTER. CONTINUE? (yes/no) "
@@ -300,9 +280,9 @@ prod_psql () {
         fi
         echo "connecting to host ${host} as user: ${username}"
         echo
-        psql -X "postgres://${username}:${password}@${host}:5432/${db}" $@
+        psql "postgres://${username}:${password}@${host}:5432/${database}" "$@"
+        unset PGOPTIONS
 }
-
 #
 # Connect to Production Redshift via the redshift_data_api_user using the get-cluster-credentials api
 #
@@ -330,10 +310,10 @@ redshift-prod-psql () {
 	fi
     if [[ $quiet != 1 ]]
     then
-        echo $db
-        echo $user
+        >&2 echo $db
+        >&2 echo $user
     fi
-	PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile prod | jq '.DbPassword' | tr -d '"' | tr -d '\n') PSQL_HISTORY=$HOME/.psql_history_12 /opt/homebrew/Cellar/postgresql@12/12.22_1/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
+	PGPASSWORD=$(aws redshift get-cluster-credentials --db-user $user --db-name "$db" --cluster-identifier albert-production-data-warehouse --profile prod-devops | jq '.DbPassword' | tr -d '"' | tr -d '\n') PSQL_HISTORY=$HOME/.psql_history_12 /opt/homebrew/Cellar/postgresql@12/12.22_2/bin/psql "host=10.161.21.44 port=5439 user=IAM:${user} dbname=${db} sslmode=verify-ca sslrootcert=${HOME}/.redshift/redshift-ca-bundle.crt" $@
 }
 
 #
@@ -479,65 +459,13 @@ restore_rde_db () {
 	psql "${base_url}/${db}" < ${backup_file}
 }
 
-
-pi_monitor() {
-    if ! pip freeze | rg -q termgraph
-    then
-        echo "Installing termgraph for visualizing the PI metrics"
-        pip install termgraph
-    fi
-
-    cluster="$1"
-    if [[ "$cluster" =~ '.*production' ]]
-    then
-        profile='prod-devops'
-    elif [[ "$cluster" =~ '.*staging' ]]
-    then
-        profile='staging-devops'
-    else
-        echo "Cluster $cluster is not a production or staging cluster."
-        return 1
-    fi
-    echo "Using profile: $profile"
-    writer_instance=$(aws rds describe-db-clusters --db-cluster-identifier "$cluster" --profile "$profile" | jq -r '.DBClusters[0].DBClusterMembers[] | select(.IsClusterWriter).DBInstanceIdentifier')
-    pi_identifier=$(aws rds describe-db-instances --db-instance-identifier "$writer_instance" --profile "$profile" | jq -r '.DBInstances[0].DbiResourceId')
-
-    jq_script='
-      # keep only dimensioned metrics (exclude the total)
-      (.MetricList | map(select(.Key.Dimensions?))) as $ml
-      |
-      # header: "@" prefix + Timestamp + each wait_event.name
-      ("@ " + (($ml | map(.Key.Dimensions["db.wait_event.name"])) | join(","))),
-      # rows: align by index across DataPoints
-      ( [range(0; ($ml[0].DataPoints | length))] | .[] as $i
-        | [ $ml[0].DataPoints[$i].Timestamp ] + ($ml | map(.DataPoints[$i].Value))
-        | @csv
-      )
-    '
-
-    clear
-    while true;
-    do
-        aws pi get-resource-metrics --service-type RDS \
-            --identifier $pi_identifier \
-            --metric-queries '{"Metric":"db.load.avg","GroupBy":{"Group":"db.wait_event","Limit":6}}' \
-            --start-time $(date -v -300S +%Y-%m-%d\T%H:%M:%S) \
-            --end-time $(date +%Y-%m-%d\T%H:%M:%S) \
-            --period-in-seconds 60 \
-            --profile "$profile" > /tmp/pi_monitor_output.json
-        jq -r "$jq_script" /tmp/pi_monitor_output.json | termgraph --stacked --color {red,blue,green,magenta,yellow,black} --title "PI Monitor for $cluster" --width 40
-        sleep 10
-        clear
-    done
-}
-
 # Find the hash image tag for a given ecr repo
 find_branch_image() {
   tag=$(aws ecr list-images --repository-name $1 \
     --registry-id 538001969475 \
     --filter tagStatus=TAGGED \
     --max-items 10000 \
-    --profile devops \
+    --profile devops-devops \
     | jq -r '
         .imageIds
         | sort_by(.imageDigest)
@@ -550,9 +478,6 @@ find_branch_image() {
   echo "Copied image tag: $tag to clipboard"
 }
 
-
-# reset and activate the default python virtual environment
-deact && activate "$DEFAULT_VENV"
 
 export ALBERT_FUNCTIONS_SET=1
 

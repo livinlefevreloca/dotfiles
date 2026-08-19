@@ -39,6 +39,21 @@ src_mod () {
 	source "${module_dir}/${module}"
 }
 
+scratch () {
+  filename="$1"
+  if [[ -z "$filename" ]]
+  then
+    filename=$(python -c 'import uuid; print(uuid.uuid4())').txt
+  fi
+  local dirname="/tmp/scratch/$(date +%Y%m%d)"
+  if [[ ! -d $dirname ]]
+  then
+    mkdir -p $dirname
+  fi
+
+  lvim "${dirname}/${filename}"
+}
+
 #
 # Reset the state of all modules to unset.
 #
@@ -157,6 +172,10 @@ chtsht () {
     query=$(curl -s "cheat.sh/:list" | fzf --preview 'curl -s cheat.sh/{}')
   fi
   curl -s "cheat.sh/${query// /+}" | delta
+}
+
+htb() {
+  TERM=tmux ssh -t livinlefevreloca@10.0.0.243 tmux
 }
 
 

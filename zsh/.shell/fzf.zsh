@@ -86,7 +86,7 @@ fnd () {
 			('py') prefix='(def|class) '  ;;
 			('lkml') prefix='(dimension|explore): '  ;;
 			('rs') prefix='(pub|fn|struct|enum|mod|type|trait|const|static|impl|macro_rules) '  ;;
-			('go') prefix='(func|type|var|const|interface|struct) '  ;;
+      ('go') prefix='(func|func \([A-za-z0-9_\-]+\*?[A-Za-z\-_]+\)|type|var|const|interface|struct) '  ;;
 			(*)  ;;
 		esac
 		pattern="${prefix}${pattern}"

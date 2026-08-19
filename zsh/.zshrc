@@ -1,17 +1,14 @@
-export DOTFILES_DIR='/Users/adam/Projects/Config/dotfiles'
 # If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/opt/libpq/bin:$PATH
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-export GHCR_TOKEN=$(cat ~/.ghcr_token)
+# export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
 
-# Path to your oh-my-zsh installation.
+# Path to your Oh My Zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
 
 # Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
+# load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="xiong-chiamiov-plus-custom"
+ZSH_THEME="robbyrussell"
 
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
@@ -26,14 +23,13 @@ ZSH_THEME="xiong-chiamiov-plus-custom"
 # Case-sensitive completion must be off. _ and - will be interchangeable.
 # HYPHEN_INSENSITIVE="true"
 
-# Uncomment the following line to disable bi-weekly auto-update checks.
-# DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line to automatically update without prompting.
-# DISABLE_UPDATE_PROMPT="true"
+# Uncomment one of the following lines to change the auto-update behavior
+# zstyle ':omz:update' mode disabled  # disable automatic updates
+# zstyle ':omz:update' mode auto      # update automatically without asking
+# zstyle ':omz:update' mode reminder  # just remind me to update when it's time
 
 # Uncomment the following line to change how often to auto-update (in days).
-# export UPDATE_ZSH_DAYS=13
+# zstyle ':omz:update' frequency 13
 
 # Uncomment the following line if pasting URLs and other text is messed up.
 # DISABLE_MAGIC_FUNCTIONS="true"
@@ -47,8 +43,12 @@ ZSH_THEME="xiong-chiamiov-plus-custom"
 # Uncomment the following line to enable command auto-correction.
 # ENABLE_CORRECTION="true"
 
-#Uncomment the following line to display red dots whilst waiting for completion.
-COMPLETION_WAITING_DOTS="true"
+# Uncomment the following line to display red dots whilst waiting for completion.
+# You can also set it to another string to have that shown instead of the default red dots.
+# e.g. COMPLETION_WAITING_DOTS="%F{yellow}waiting...%f"
+# Caution: this setting can cause issues with multiline prompts in zsh < 5.7.1 (see #5765)
+# COMPLETION_WAITING_DOTS="true"
+
 # Uncomment the following line if you want to disable marking untracked files
 # under VCS as dirty. This makes repository status check for large repositories
 # much, much faster.
@@ -71,62 +71,90 @@ COMPLETION_WAITING_DOTS="true"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
-    git
-    kubectl
+  git
+  kubectl
+  fzf
 )
 
-# set up ohmyzsh
 source $ZSH/oh-my-zsh.sh
-# end set up ohmyzsh
 
+# User configuration
+
+# export MANPATH="/usr/local/man:$MANPATH"
+
+# You may need to manually set your language environment
+# export LANG=en_US.UTF-8
+
+# Preferred editor for local and remote sessions
+# if [[ -n $SSH_CONNECTION ]]; then
+#   export EDITOR='vim'
+# else
+#   export EDITOR='nvim'
+# fi
+
+# Compilation flags
+# export ARCHFLAGS="-arch $(uname -m)"
+
+# Set personal aliases, overriding those provided by Oh My Zsh libs,
+# plugins, and themes. Aliases can be placed here, though Oh My Zsh
+# users are encouraged to define aliases within a top-level file in
+# the $ZSH_CUSTOM folder, with .zsh extension. Examples:
+# - $ZSH_CUSTOM/aliases.zsh
+# - $ZSH_CUSTOM/macos.zsh
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+
+export DOTFILES_DIR="${HOME}/Projects/Config/dotfiles"
 
 #install required cli tools (please install brew first)
-# touch temp
-# if_not_i () {
-#     if ! which $1;
-#     then
-#         echo $1 >> temp
-#     fi
-# }
-#
-# if_not_i ctags
-# if_not_i exa
-# if_not_i fd
-# if_not_i fzf
-# if_not_i git
-# if_not_i jq
-# if_not_i htop
-# if_not_i neovim
-# if_not_i node
-# if_not_i pyenv
-# if_not_i pyenv-virtualenv
-# if_not_i ripgrep
-# if_not_i shellcheck
-# if_not_i tfenv
-# if_not_i tmux
-# if_not_i bat
-# if_not_i socat
-# if_not_i git-delta
-# if_not_i ccls
-#
-#
-#
-# if [[ `cat temp` != "" ]];
-# then
-#     brew install `cat temp | xargs`
-# fi
-# rm temp
+touch /tmp/temp
+if_not_i () {
+    if ! which $1 > /dev/null;
+    then
+        echo $1 >> /tmp/temp
+    fi
+}
 
-#if ! which cargo;
-#then
+if_not_i ctags
+if_not_i bear
+if_not_i fd
+if_not_i fzf
+if_not_i git
+if_not_i jq
+if_not_i htop
+if_not_i nvim
+if_not_i node
+if_not_i rg
+if_not_i tfenv
+if_not_i tmux
+if_not_i bat
+if_not_i socat
+if_not_i delta
+if_not_i kubectl
+
+if [[ `cat /tmp/temp` != "" ]]; then
+    brew install `cat /tmp/temp | xargs`
+fi
+rm /tmp/temp
+#
+# if ! which uv > /dev/null; then
+# curl -LsSf https://astral.sh/uv/install.sh | sh
+# fi
+
+#if ! which cargo > /dev/null; then
 #    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 #fi
 
-#if ! which go;
-#then
-#    (cd ~/Downloads && curl -O https://golang.org/dl/go1.16.2.darwin-amd64.pkg && cd -)
-#    open ~/Downloads/go1.16.2.darwin-amd64.pkg
-#    go version
+# Install LazyVim
+# if [ ! -d "${HOME}/.config/lazyvim" ]; then
+# 	git clone https://github.com/LazyVim/starter ~/.config/lazyvim
+# fi
+
+#if ! which claude > /dev/null; then
+# 	curl -fsSL https://claude.ai/install.sh | bash
 #fi
 
 # end install
@@ -142,27 +170,26 @@ else
   export EDITOR='nvim'
 fi
 
-# Refresh shell scripts. We need to remove the existing symlinks to pick up new changes
+# # Refresh shell scripts. We need to remove the existing symlinks to pick up new changes
 rm -rf "${SHELL_SCRIPTS}"
 mkdir -p "${SHELL_SCRIPTS}"
 ln -s ${DOTFILES_DIR}/zsh/.shell/* ${SHELL_SCRIPTS}
 ln -s ${DOTFILES_DIR}/zsh/.shell/.aliases ${SHELL_SCRIPTS}/.aliases
 
-# Refresh lazy vim symlinks
+# # Refresh lazy vim symlinks
 rm -rf "${HOME}/.config/lazyvim"
 mkdir -p "${HOME}/.config/lazyvim"
 ln -s ${DOTFILES_DIR}/lazyvim/* ${HOME}/.config/lazyvim
 
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-# export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
-
+export PATH="/opt/homebrew/opt/ruby/bin:/opt/homebrew/lib/ruby/gems/3.1.0/bin:$PATH"
+#
 [ -f "/Users/adamlefevre/.ghcup/env" ] && source "/Users/adamlefevre/.ghcup/env" # ghcup-env
-
+#
 source ~/.private.env
-
+#
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-clear
 
 
 # BEGIN opam configuration
@@ -184,7 +211,13 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export GOPATH="$HOME/go"
 export GOBIN="$GOPATH/bin"
 export PATH="$PATH:$GOBIN"
-export GEMINI_API_KEY=$(cat ~/.gemini)
+export GEMINI_API_KEY=$(echo -n `cat ~/.gemini`)
+export NOTION_TOKEN=$(echo -n `cat ~/.notion`)
+export CLAUDE_API_KEY=$(echo -n `cat ~/.claude-api`)
+export OPENAI_API_KEY=$(echo -n `cat ~/.openai`)
+export PUBLIC_API_KEY=$(echo -n `cat ~/.public`)
+export DROPBOX_APP_SECRET=$(echo -n `cat ~/.dropbox`)
+export NEWRELIC_API_KEY=$(echo -n `cat ~/.newrelic`)
 
 export IN_TMUX=0
 if [[ ! -z "${TMUX+x}" ]]
@@ -193,12 +226,6 @@ then
     export IN_TMUX=1
 fi
 
-# if [[ $(env | rg VIMRUNTIME) ]]
-# then
-#     source ~/.shell/.aliases
-#     echo "Running from vim skipping modules"
-# else
-# fzf
 [[ ! "$FZF_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/fzf.zsh" ]] && source ${SHELL_SCRIPTS}/fzf.zsh
 #end fzf functions
 
@@ -219,7 +246,7 @@ fi
 # end k8s
 
 # pyenv
-[[ ! "$PYENV_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/pyenv.zsh" ]] && source "${SHELL_SCRIPTS}/pyenv.zsh"
+# [[ ! "$PYENV_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/pyenv.zsh" ]] && source "${SHELL_SCRIPTS}/pyenv.zsh"
 #end pyenv
 
 #aws
@@ -254,5 +281,13 @@ fi
 [[ $(whoami) -eq 'adamlefevre' ]] && [[ ! "$ALBERT_FUNCTIONS_SET" && -f "${SHELL_SCRIPTS}/albert.zsh" ]] && [[ ! "$SKIP_ALBERT" ]] && source "${SHELL_SCRIPTS}/albert.zsh"
 # end Albert
 
+if ! kb agent status > /dev/null 2>&1; then
+  kb agent start --tmux
+fi
 
+. "$HOME/.local/bin/env"
+sleep 0.25
+clear
 
+# opencode
+export PATH=/Users/adam/.opencode/bin:$PATH
